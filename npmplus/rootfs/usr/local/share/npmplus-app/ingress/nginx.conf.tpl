@@ -55,7 +55,7 @@ server {
     proxy_pass http://npmplus_app_backend/api;
   }
 
-  # Browser-side helper of the ingress integration (see assets/shim.js).
+  # Browser-side helpers of the ingress integration (see assets/shim.js).
   location /_npmplus_app/ {
     alias @SHARE_DIR@/assets/;
     more_set_headers "Cache-Control: no-cache";
@@ -96,7 +96,7 @@ server {
     try_files $uri /index.html;
 
     sub_filter_once off;
-    sub_filter '<head>' '<head><script src="$http_x_ingress_path/_npmplus_app/shim.js"></script>';
+    sub_filter '<head>' '<head><script src="$http_x_ingress_path/_npmplus_app/shim.js" data-version="@APP_VERSION@" data-support-footer="@SUPPORT_FOOTER@"></script>';
     sub_filter 'src="/' 'src="$http_x_ingress_path/';
     sub_filter 'href="/' 'href="$http_x_ingress_path/';
     sub_filter 'content="/' 'content="$http_x_ingress_path/';

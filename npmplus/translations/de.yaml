@@ -183,6 +183,13 @@ configuration:
       authentik_upstream:
         name: authentik
         description: Zum Beispiel https://127.0.0.1:9443. Funktioniert nur mit dem eingebetteten Outpost.
+  interface:
+    name: Oberfläche
+    description: Die Admin-Oberfläche in Home Assistant.
+    fields:
+      support_footer:
+        name: App-Fußzeile anzeigen
+        description: Fügt unter der Fußzeile der Admin-Oberfläche eine Zeile mit App-Version und Support-Links hinzu. Standardmäßig an.
   advanced:
     name: Erweitert
     description: Für alles, was die anderen Optionen nicht abdecken.

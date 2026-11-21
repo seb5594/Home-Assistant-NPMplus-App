@@ -31,10 +31,11 @@ RUN chmod a+x /run.sh /entrypoint.sh \
     && /usr/local/lib/npmplus-app/patch-frontend.sh \
     && /usr/local/lib/npmplus-app/precompress-frontend.sh
 
-ARG BUILD_VERSION=2026.11.21.3
+ARG BUILD_VERSION=2026.11.21.4
 ARG BUILD_ARCH=amd64
 ENV NODE_ENV=production \
-    NODE_OPTIONS=--use-openssl-ca
+    NODE_OPTIONS=--use-openssl-ca \
+    NPMPLUS_APP_VERSION=${BUILD_VERSION}
 LABEL io.hass.version="${BUILD_VERSION}" \
     io.hass.type="addon" \
     io.hass.arch="${BUILD_ARCH}" \

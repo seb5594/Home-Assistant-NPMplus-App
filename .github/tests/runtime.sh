@@ -317,6 +317,7 @@ ingress_config_is_valid_nginx() {
   assert_file "$config" "config written"
   [[ $(cat "$config") != *@*@* ]] || fail "all placeholders are replaced"
   assert_contains "$(cat "$config")" "listen 5594 default_server;" "ingress port"
+  assert_contains "$(cat "$config")" 'data-support-footer="true"' "the footer is on by default"
 
   mkdir -p "${SANDBOX}/nginx"
   cat > "${SANDBOX}/nginx/nginx.conf" <<EOF
@@ -331,6 +332,22 @@ http {
 EOF
   nginx -t -p "${SANDBOX}/nginx" -c "${SANDBOX}/nginx/nginx.conf" 2>&1 | grep -q "test is successful" \
     || fail "nginx rejects the ingress config"
+}
+
+ingress_footer_can_be_switched_off() {
+  write_options '{"interface": {"support_footer": false}}'
+  assert_contains "$(ingress::render_config)" 'data-support-footer="false"' "footer off"
+}
+
+ingress_footer_texts_are_in_the_shim() {
+  # The footer wording is part of the shim; keep the pieces people asked for from getting lost.
+  local shim
+  shim=$(cat /usr/local/share/npmplus-app/ingress/assets/shim.js)
+  assert_contains "$shim" "Made with " "heart line"
+  assert_contains "$shim" '\uD83C\uDDE9\uD83C\uDDEA' "German flag"
+  assert_contains "$shim" "Support my work " "support line"
+  assert_contains "$shim" '\u2615' "coffee"
+  assert_contains "$shim" '\uD83C\uDF7A' "beer"
 }
 
 ingress_serves_every_route_of_the_upstream_ui() {
@@ -424,6 +441,8 @@ scenario migration_reports_a_missing_source migration_reports_a_missing_source
 scenario migration_imports_a_manual_folder migration_imports_a_manual_folder
 scenario migration_reads_a_database_in_use migration_reads_a_database_in_use
 scenario ingress_config_is_valid_nginx ingress_config_is_valid_nginx
+scenario ingress_footer_can_be_switched_off ingress_footer_can_be_switched_off
+scenario ingress_footer_texts_are_in_the_shim ingress_footer_texts_are_in_the_shim
 scenario ingress_serves_every_route_of_the_upstream_ui ingress_serves_every_route_of_the_upstream_ui
 scenario ingress_uses_the_socket_of_the_upstream_backend ingress_uses_the_socket_of_the_upstream_backend
 scenario ingress_policies_follow_upstream_and_allow_the_frame ingress_policies_follow_upstream_and_allow_the_frame

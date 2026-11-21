@@ -71,6 +71,8 @@ veröffentlicht sein.
   [`migration.sh`](npmplus/rootfs/usr/local/lib/npmplus-app/migration.sh).
 - **Architekturen.** amd64 und aarch64, die Plattformen, für die NPMplus selbst gebaut wird. armv7, armhf und
   i386 (die Legacy-Plattformen des Base-Images) gibt es nicht: NPMplus liefert dafür keine Binärdateien.
+- **Eine App-Fußzeile** unter der Fußzeile der Admin-Oberfläche mit App-Version und Support-Links. Sie ist
+  standardmäßig an; *Oberfläche → App-Fußzeile anzeigen* schaltet sie ab.
 - **Ein schneller Seitenleisten-Eintrag.** Der nginx der App liefert die Dateien der Admin-Oberfläche selbst
   aus und reicht nur die API über den Unix-Socket an das NPMplus-Backend weiter. Die Dateien werden beim
   Bauen des Images einmal komprimiert, ein Request kostet also fast nichts.

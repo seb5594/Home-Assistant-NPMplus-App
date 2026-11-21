@@ -1,0 +1,22 @@
+/* Support footer added below the footer of the NPMplus UI (see shim.js). */
+.npmplus-app-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem 1rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--tblr-border-color, rgba(128, 128, 128, 0.25));
+  font-size: 0.8125rem;
+  color: var(--tblr-secondary, inherit);
+}
+
+.npmplus-app-footer a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.npmplus-app-footer a:hover {
+  color: var(--tblr-primary, inherit);
+}

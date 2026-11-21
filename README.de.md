@@ -2,6 +2,10 @@
 
 [🇬🇧 English](README.md) · **🇩🇪 Deutsch**
 
+> **Experimentell.** Die App ist neu. Die Ingress-Anbindung und der Import anderer
+> Nginx-Proxy-Manager-Installationen wurden bisher nur mit Testdaten geprüft, mach also vor einer Migration
+> ein Backup.
+
 [NPMplus](https://github.com/ZoeyVid/NPMplus) als Home-Assistant-App: ein Reverse Proxy, der deine
 Dienste mit kostenlosen Zertifikaten hinter HTTPS stellt. Verwaltet wird er in einer Weboberfläche,
 die direkt in der Home-Assistant-Seitenleiste öffnet.

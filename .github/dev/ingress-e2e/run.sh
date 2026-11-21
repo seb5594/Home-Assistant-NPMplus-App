@@ -49,10 +49,14 @@ for _ in $(seq 1 90); do
 done
 healthy || { docker logs "$CONTAINER" | tail -30; echo "The app did not become healthy" >&2; exit 1; }
 
-# The admin interface over TLS shares the port with the ingress server, on the loopback interface.
+# The admin interface over TLS shares the port with the ingress server: nginx picks the server by the
+# address a request was sent to, and only the gateway of the Supervisor's network gets the ingress server.
 curl -fsk https://127.0.0.1:5594/api | grep -q '"status": "OK"' \
   || { echo "The admin interface does not answer over TLS on 127.0.0.1:5594" >&2; exit 1; }
-# ... and the ingress server is not reachable there: the TLS listener redirects plain requests.
+# A request to any other address of the machine, as from the LAN, reaches it too.
+curl -fsk https://172.30.32.2:5594/api | grep -q '"status": "OK"' \
+  || { echo "The admin interface does not answer over TLS on another address of the machine" >&2; exit 1; }
+# ... and the ingress server is not what answers on any other address: the TLS server redirects.
 status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://127.0.0.1:5594/healthz || true)
 if [[ $status == 200 ]]; then
   echo "The ingress server must not answer on the loopback interface" >&2

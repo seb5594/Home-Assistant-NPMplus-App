@@ -24,10 +24,10 @@ extra port and is protected by your Home Assistant login. The interface starts i
 switch in its header changes that, and the choice is remembered. Below its footer the app adds a line
 with its version and support links.
 
-The same port, 5594, also carries the interface over HTTPS with a self-signed certificate, but only on
-the loopback interface of the host (for the API and for tools on the same machine). To reach it from
-the LAN, for example for OpenID Connect login, set `NPM_LISTEN_LOCALHOST=false` and a different
-`NPM_PORT` under **Advanced → Additional environment variables**.
+The same port, 5594, also carries the interface over HTTPS with a self-signed certificate: open
+`https://<address of this machine>:5594` and accept the certificate warning. You need it for the API,
+for OpenID Connect login and for GoAccess. **Network → Admin interface port** changes the port, and
+**Admin interface on this machine only** closes it to the LAN; the sidebar entry keeps working either way.
 
 ## Network
 
@@ -39,7 +39,7 @@ no port mapping.
 | `8080/tcp` | HTTP, also used by certificate validation (HTTP-01). Forward port 80 of your router here. |
 | `443/tcp` | HTTPS |
 | `443/udp` | HTTP/3 (QUIC) |
-| `5594/tcp` | Admin interface: through the Supervisor's network for the sidebar entry, over HTTPS on the loopback interface |
+| `5594/tcp` | Admin interface over HTTPS; the sidebar entry uses the same port through the Supervisor's network |
 
 The HTTP and HTTPS ports can be changed under **Network** in the app configuration.
 
@@ -62,9 +62,8 @@ variables** takes any number of them, one `NAME=value` per entry, for example:
 ```yaml
 advanced:
   extra_environment:
-    # Let the admin interface listen on localhost only: reachable through the sidebar entry,
-    # (it is limited to the loopback interface already; this line is an example only).
-    - NPM_LISTEN_LOCALHOST=true
+    # Example of a variable without an option of its own.
+    - NGINX_LOAD_NJS_MODULE=true
 ```
 
 They are applied last and override the options above. The variables are listed in the
@@ -126,13 +125,9 @@ Assistant. When you set it up, enter:
 - the email and password of an NPMplus user, and turn off the verification of the SSL
   certificate: that port uses a self-signed one.
 
-The port answers on the loopback interface only, so Home Assistant has to run on the same host, which
-it does on Home Assistant OS.
-
 ## Limitations
 
-- OpenID Connect login and GoAccess statistics need the HTTPS port, which listens on the loopback
-  interface only by default, not the sidebar entry.
+- OpenID Connect login and GoAccess statistics need the HTTPS port, not the sidebar entry.
 - Starting with a database written by a newer Nginx Proxy Manager than NPMplus supports is not
   possible; the import stops with a message instead of damaging anything.
 

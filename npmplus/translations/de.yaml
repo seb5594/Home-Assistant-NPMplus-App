@@ -46,6 +46,12 @@ configuration:
     name: Netzwerk
     description: Welche Protokolle NPMplus anbietet und wie es Clients erkennt.
     fields:
+      admin_port:
+        name: Port der Admin-Oberfläche
+        description: Port der Admin-Oberfläche über HTTPS (selbstsigniertes Zertifikat), erreichbar als https://<Adresse dieses Rechners>:<Port>. Standard 5594. Der Seitenleisten-Eintrag funktioniert auch ohne.
+      admin_localhost_only:
+        name: Admin-Oberfläche nur auf diesem Rechner
+        description: Die Admin-Oberfläche antwortet nur auf der Loopback-Schnittstelle und ist im LAN nicht erreichbar. Der Seitenleisten-Eintrag funktioniert weiter.
       http_port:
         name: HTTP-Port
         description: Port, auf dem NPMplus HTTP annimmt. Standard 8080, damit Port 80 des Hosts frei bleibt; leite Port 80 deines Routers darauf weiter. Zertifikate per HTTP-01-Challenge funktionieren, solange der Router 80 auf diesen Port abbildet.

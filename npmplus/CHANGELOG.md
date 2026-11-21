@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.11.21.7
+
+* The admin interface is reachable from the LAN again: `https://<address of the machine>:5594` (self-signed certificate). The ingress server shares the port, nginx tells them apart by the address a request was sent to. *Network → Admin interface port* changes the port (for example back to 81), *Admin interface on this machine only* closes it to the LAN.
+
 ## 2026.11.21.6
 
 * Fixed the 403 error of the sidebar entry: NPMplus replaces the address of a request with the client address from `X-Forwarded-For`, so the check for the Supervisor never matched when Home Assistant passed the browser's address on. The check now looks at the address of the connection itself.

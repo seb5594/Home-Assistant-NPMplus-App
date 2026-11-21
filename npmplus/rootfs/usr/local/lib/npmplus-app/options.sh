@@ -9,12 +9,11 @@ OPTION_ENV_MAP="${OPTION_ENV_MAP:-/usr/local/share/npmplus-app/option-env.map}"
 OPTION_ENV_PROGRAM="${OPTION_ENV_PROGRAM:-/usr/local/share/npmplus-app/options-to-environment.jq}"
 
 # Settings where this app deliberately differs from NPMplus. It shares the network of the host, so it
-# keeps clear of the ports of the host and its admin interface must not face the LAN. Each applies
-# only while neither an option nor an additional environment variable sets the same variable.
+# keeps clear of the ports of the host. Each applies only while neither an option nor an additional
+# environment variable sets the same variable.
 readonly APP_DEFAULTS=(
-  HTTP_PORT=8080            # port 80 stays free; the router forwards 80 to 8080
-  NPM_PORT=5594             # the admin interface over TLS, like the ingress port
-  NPM_LISTEN_LOCALHOST=true # ... but only on the loopback interface
+  HTTP_PORT=8080 # port 80 stays free; the router forwards 80 to 8080
+  NPM_PORT=5594  # the admin interface over TLS; the ingress server shares the port (see ingress.sh)
 )
 
 # Reads a single option by its dotted path ("migration.source"); prints nothing when it is unset.

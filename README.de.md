@@ -60,8 +60,6 @@ App: Sie macht deine Proxy-Hosts, Streams und Zertifikate zu Geräten und Entit�
 Host ein- oder ausschalten oder das Ablaufdatum von Zertifikaten in Home Assistant verfolgen kannst.
 Trage `127.0.0.1` (oder die Adresse deines Home-Assistant-Rechners) ein, Port `5594`, einen
 NPMplus-Benutzer und lass die SSL-Prüfung aus, weil dieser Port ein selbstsigniertes Zertifikat nutzt.
-Er antwortet nur auf der Loopback-Schnittstelle, Home Assistant muss also auf demselben Host laufen,
-was bei Home Assistant OS der Fall ist.
 
 ## Gut zu wissen
 
@@ -72,9 +70,10 @@ was bei Home Assistant OS der Fall ist.
   `127.0.0.1:8123`, für andere Apps auf die Adresse des Rechners und deren Port. Namen des
   Home-Assistant-Netzwerks wie `homeassistant` werden auf dem Host nicht aufgelöst; Hosts, die von einer
   App in diesem Netzwerk übernommen werden, brauchen ein neues Ziel.
-- **Port 5594.** Der Seitenleisten-Eintrag erreicht die Admin-Oberfläche auf diesem Port, nur über das
-  Netzwerk des Supervisors. Derselbe Port trägt auf der Loopback-Schnittstelle auch die Admin-Oberfläche
-  per HTTPS mit selbstsigniertem Zertifikat. Der Seitenleisten-Eintrag braucht ihn nicht. OpenID-Connect-Anmeldung und GoAccess brauchen ihn.
+- **Port 5594.** Die Admin-Oberfläche ist auch per HTTPS erreichbar: `https://<Adresse des Rechners>:5594`
+  mit selbstsigniertem Zertifikat. Der Seitenleisten-Eintrag nutzt denselben Port über das Netzwerk des
+  Supervisors und braucht ihn nicht. *Netzwerk → Port der Admin-Oberfläche* ändert den Port, *Admin-Oberfläche
+  nur auf diesem Rechner* sperrt ihn fürs LAN. OpenID-Connect-Anmeldung und GoAccess brauchen ihn.
 - **Zugriff auf die Konfiguration anderer Apps.** Um die Daten der Community-App direkt zu
   importieren, darf diese App die Konfigurationsordner aller Apps lesen (nur lesend). Sie tut das nur,
   solange eine Migration eingestellt ist, und schreibt nie hinein. Die Zuordnung nutzt die alten `addon_config`-Typen, die jede

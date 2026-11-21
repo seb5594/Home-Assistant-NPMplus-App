@@ -34,7 +34,8 @@ dem gemeinsamen [Home-Assistant-Base-Image](https://github.com/seb5594/home-assi
 1. Füge dieses App-Repository mit dem Button in der englischen README zu Home Assistant hinzu und
    installiere **NPMplus**.
 2. Starte die App, öffne **NPMplus** in der Seitenleiste und lege deinen Administrator an.
-3. Leite die Ports 80 und 443 (TCP, und 443 UDP für HTTP/3) am Router auf Home Assistant weiter.
+3. Leite Port 80 deines Routers auf Port **8080** von Home Assistant weiter und Port 443 (TCP, und UDP
+   für HTTP/3) auf 443.
 4. Lege deinen ersten Proxy-Host an.
 
 Du kommst vom Nginx Proxy Manager? Lies die [Migrationsanleitung](docs/MIGRATION.de.md) **vor** dem
@@ -57,17 +58,23 @@ vorher ein Backup.
 Die Community-Integration **[ha-npmplus](https://github.com/metaathron/ha-npmplus)** passt zu dieser
 App: Sie macht deine Proxy-Hosts, Streams und Zertifikate zu Geräten und Entitäten, sodass du einen
 Host ein- oder ausschalten oder das Ablaufdatum von Zertifikaten in Home Assistant verfolgen kannst.
-Trage den Hostnamen der App ein (steht auf ihrer Info-Seite), Port `81`, einen NPMplus-Benutzer und
-lass die SSL-Prüfung aus, weil Port 81 ein selbstsigniertes Zertifikat nutzt. Port 81 muss dafür nicht
-veröffentlicht sein.
+Trage `127.0.0.1` (oder die Adresse deines Home-Assistant-Rechners) ein, Port `5594`, einen
+NPMplus-Benutzer und lass die SSL-Prüfung aus, weil dieser Port ein selbstsigniertes Zertifikat nutzt.
+Er antwortet nur auf der Loopback-Schnittstelle, Home Assistant muss also auf demselben Host laufen,
+was bei Home Assistant OS der Fall ist.
 
 ## Gut zu wissen
 
-- **Netzwerk.** Die App läuft im Home-Assistant-Netzwerk, die Ports 80, 443 und 443/udp sind
-  veröffentlicht. Proxy-Hosts können `homeassistant:8123` oder jede andere App über ihren Hostnamen
-  ansprechen.
-- **Port 81** (Admin-Oberfläche über HTTPS) ist standardmäßig aus. Der Seitenleisten-Eintrag braucht
-  ihn nicht. OpenID-Connect-Anmeldung und GoAccess brauchen ihn.
+- **Netzwerk.** Die App nutzt das Netzwerk des Hosts: Sie sieht die echte Adresse jedes Clients, und
+  HTTP/3 braucht keine Port-Zuordnung. Sie lauscht auf 8080 für HTTP (Port 80 des Hosts bleibt also
+  frei; der Router leitet 80 darauf weiter) und auf 443 für HTTPS und HTTP/3. Beides lässt sich in der
+  Konfiguration unter *Netzwerk* ändern. Proxy-Hosts zeigen deshalb für Home Assistant auf
+  `127.0.0.1:8123`, für andere Apps auf die Adresse des Rechners und deren Port. Namen des
+  Home-Assistant-Netzwerks wie `homeassistant` werden auf dem Host nicht aufgelöst; Hosts, die von einer
+  App in diesem Netzwerk übernommen werden, brauchen ein neues Ziel.
+- **Port 5594.** Der Seitenleisten-Eintrag erreicht die Admin-Oberfläche auf diesem Port, nur über das
+  Netzwerk des Supervisors. Derselbe Port trägt auf der Loopback-Schnittstelle auch die Admin-Oberfläche
+  per HTTPS mit selbstsigniertem Zertifikat. Der Seitenleisten-Eintrag braucht ihn nicht. OpenID-Connect-Anmeldung und GoAccess brauchen ihn.
 - **Zugriff auf die Konfiguration anderer Apps.** Um die Daten der Community-App direkt zu
   importieren, darf diese App die Konfigurationsordner aller Apps lesen (nur lesend). Sie tut das nur,
   solange eine Migration eingestellt ist, und schreibt nie hinein. Die Zuordnung nutzt die alten `addon_config`-Typen, die jede
@@ -75,8 +82,7 @@ veröffentlicht sein.
   [`migration.sh`](npmplus/rootfs/usr/local/lib/npmplus-app/migration.sh).
 - **Architekturen.** amd64 und aarch64, die Plattformen, für die NPMplus selbst gebaut wird. armv7, armhf und
   i386 (die Legacy-Plattformen des Base-Images) gibt es nicht: NPMplus liefert dafür keine Binärdateien.
-- **Eine App-Fußzeile** unter der Fußzeile der Admin-Oberfläche mit App-Version und Support-Links. Sie ist
-  standardmäßig an; *Oberfläche → App-Fußzeile anzeigen* schaltet sie ab.
+- **Eine App-Fußzeile** unter der Fußzeile der Admin-Oberfläche mit App-Version und Support-Links.
 - **Ein schneller Seitenleisten-Eintrag.** Der nginx der App liefert die Dateien der Admin-Oberfläche selbst
   aus und reicht nur die API über den Unix-Socket an das NPMplus-Backend weiter. Die Dateien werden beim
   Bauen des Images einmal komprimiert, ein Request kostet also fast nichts.

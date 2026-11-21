@@ -10,8 +10,7 @@
  *     expired session lands on the UI again instead of on Home Assistant.
  *   - The router of the UI reads its location from window.__npmplusLocation (patched in at image
  *     build time), which shows the route without the ingress path.
- *   - A support footer is appended to the footer of the UI (switched off by the app option
- *     interface.support_footer).
+ *   - A support footer is appended to the footer of the UI.
  *
  * Opened directly, without the ingress path, the script does nothing.
  */
@@ -161,14 +160,10 @@
 
   // ---- Start --------------------------------------------------------------------------------
 
-  var withFooter = script.getAttribute("data-support-footer") !== "false";
-
-  if (withFooter) {
-    var stylesheet = create("link");
-    stylesheet.rel = "stylesheet";
-    stylesheet.href = prefix + "/_npmplus_app/footer.css";
-    document.head.appendChild(stylesheet);
-  }
+  var stylesheet = create("link");
+  stylesheet.rel = "stylesheet";
+  stylesheet.href = prefix + "/_npmplus_app/footer.css";
+  document.head.appendChild(stylesheet);
 
   // The UI renders its pages after load and replaces them on every navigation, so the footer and
   // inline styles are checked whenever the document changes.
@@ -185,8 +180,6 @@
         }
       });
     });
-    if (withFooter) {
-      addFooter();
-    }
+    addFooter();
   }).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ["style"] });
 }());

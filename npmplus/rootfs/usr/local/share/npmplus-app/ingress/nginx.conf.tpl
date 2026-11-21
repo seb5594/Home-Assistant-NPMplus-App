@@ -23,13 +23,23 @@ map $http_origin $npmplus_app_host {
   default                            $http_host;
 }
 
+# Only the Supervisor (ingress gateway and watchdog) may talk to this server. The address of the
+# connection itself counts: NPMplus replaces $remote_addr with the client address from
+# X-Forwarded-For (realip module), which for ingress is the browser's, never the Supervisor's.
+geo $realip_remote_addr $npmplus_app_from_supervisor {
+  default     0;
+  @SUPERVISOR_ADDRESS@ 1;
+}
+
 server {
-  listen @INGRESS_PORT@ default_server;
+  # The app shares the network of the host, so the server listens on the address of the Supervisor's
+  # network only and is out of reach for the LAN.
+  listen @INGRESS_ADDRESS@:@INGRESS_PORT@ default_server;
   server_name _;
 
-  # Only the Supervisor (ingress gateway and watchdog) may talk to this server.
-  allow 172.30.32.2;
-  deny all;
+  if ($npmplus_app_from_supervisor = 0) {
+    return 403;
+  }
 
   access_log off;
   root @UI_ROOT@;
@@ -96,7 +106,7 @@ server {
     try_files $uri /index.html;
 
     sub_filter_once off;
-    sub_filter '<head>' '<head><script src="$http_x_ingress_path/_npmplus_app/shim.js" data-version="@APP_VERSION@" data-support-footer="@SUPPORT_FOOTER@"></script>';
+    sub_filter '<head>' '<head><script src="$http_x_ingress_path/_npmplus_app/shim.js" data-version="@APP_VERSION@"></script>';
     sub_filter 'src="/' 'src="$http_x_ingress_path/';
     sub_filter 'href="/' 'href="$http_x_ingress_path/';
     sub_filter 'content="/' 'content="$http_x_ingress_path/';

@@ -1,7 +1,7 @@
 name: NPMplus
-version: "2026.11.21.5"
+version: "2026.11.21.6"
 slug: npmplus
-description: Reverse proxy with free TLS certificates, HTTP/3 and a modern admin UI. A fork of Nginx Proxy Manager.
+description: Nginx Proxy Manager fork with free TLS certificates, HTTP/3 and a modern admin UI. Reverse proxy for your smart home.
 url: https://github.com/seb5594/Home-Assistant-NPMplus-App
 arch:
   - aarch64
@@ -10,22 +10,13 @@ stage: experimental
 startup: services
 boot: auto
 init: true
+host_network: true
 ingress: true
 ingress_port: 5594
 panel_icon: mdi:router-network
 panel_title: NPMplus
 panel_admin: true
 watchdog: http://[HOST]:[PORT:5594]/healthz
-ports:
-  80/tcp: 80
-  443/tcp: 443
-  443/udp: 443
-  81/tcp: null
-ports_description:
-  80/tcp: HTTP, also used for ACME HTTP-01 challenges
-  443/tcp: HTTPS (HTTP/1.1 and HTTP/2)
-  443/udp: HTTP/3 (QUIC)
-  81/tcp: Admin UI over HTTPS with a self-signed certificate (the ingress panel works without it)
 # The legacy map types are used on purpose: every Supervisor accepts them, while the newer names
 # (app_config, all_app_configs) are unknown to older ones. Newer Supervisors only log a notice.
 map:
@@ -41,7 +32,6 @@ options:
   account: {}
   oidc: {}
   auth_request: {}
-  interface: {}
   advanced: {}
   migration:
     source: none
@@ -61,6 +51,8 @@ schema:
     renew_interval_hours: int(1,)?
     default_certificate_id: int(1,)?
   network:
+    http_port: port?
+    https_port: port?
     disable_ipv6: bool?
     disable_http: bool?
     disable_http3: bool?
@@ -105,8 +97,6 @@ schema:
     voidauth_upstream: url?
     authelia_upstream: url?
     authentik_upstream: url?
-  interface:
-    support_footer: bool?
   advanced:
     extra_environment:
       - "match(^[A-Za-z_][A-Za-z0-9_]*=.*$)?"

@@ -5,18 +5,28 @@ import http from "node:http";
 
 const PREFIX = "/api/hassio_ingress/TESTTOKEN";
 const APP_PORT = Number(process.env.APP_INGRESS_PORT ?? 5594);
-// The app only accepts the Supervisor's address; the test adds it to the loopback interface.
+// The app shares the network of the host and listens on the gateway of the Supervisor's network,
+// and it only accepts the Supervisor's address. The test adds both to the loopback interface.
+const APP_ADDRESS = process.env.APP_INGRESS_ADDRESS ?? "172.30.32.1";
 const SUPERVISOR_ADDRESS = process.env.SUPERVISOR_ADDRESS ?? "172.30.32.2";
+// What a browser behind the user's own reverse proxy looks like to Home Assistant.
+const CLIENT_ADDRESS = "192.168.69.163";
 const leaks = [];
 
 const proxyToApp = (request, response) => {
   const upstream = http.request({
-    host: "127.0.0.1",
+    host: APP_ADDRESS,
     port: APP_PORT,
     method: request.method,
     path: request.url.slice(PREFIX.length) || "/",
     localAddress: SUPERVISOR_ADDRESS,
-    headers: { ...request.headers, "x-ingress-path": PREFIX, host: `127.0.0.1:${APP_PORT}` },
+    headers: {
+      ...request.headers,
+      "x-ingress-path": PREFIX,
+      // Home Assistant passes the client on in X-Forwarded-For; NPMplus trusts it for the real address.
+      "x-forwarded-for": CLIENT_ADDRESS,
+      host: `${APP_ADDRESS}:${APP_PORT}`,
+    },
   }, (reply) => {
     response.writeHead(reply.statusCode, reply.headers);
     reply.pipe(response);

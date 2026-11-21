@@ -1,17 +1,26 @@
 # Home Assistant ingress front of the NPMplus admin UI.
 # Rendered at every start from nginx.conf.tpl by the NPMplus app; edit the template, not this file.
+#
+# It mirrors the routes of the UI virtual host of NPMplus (static files, the gravatar folder and the
+# API behind a unix socket), minus TLS, so a request is answered by one nginx without any detour.
 
-upstream npmplus_app_ui {
-  server 127.0.0.1:@UI_PORT@;
-  keepalive 4;
+upstream npmplus_app_backend {
+  server unix:/run/npmplus.sock;
+  keepalive 8;
 }
 
-# The UI rejects requests whose Origin differs from the address it is reached at. Behind ingress
-# the browser's Origin is Home Assistant's own, so an Origin that is present is restated for this
-# hop. Requests from other sites are still refused by the UI through their Sec-Fetch-Site header.
-map $http_origin $npmplus_app_origin {
-  ""      "";
-  default "https://$http_host";
+# The backend rejects requests whose Origin differs from the address it believes it is reached at
+# (scheme from X-Forwarded-Proto, host from X-Forwarded-Host). Behind ingress that address is Home
+# Assistant's, which the browser states in Origin, so both values are taken from it. Requests from
+# other sites are still refused by the backend through their Sec-Fetch-Site header.
+map $http_origin $npmplus_app_scheme {
+  "~^(?<origin_scheme>https?)://" $origin_scheme;
+  default                         https;
+}
+
+map $http_origin $npmplus_app_host {
+  "~^https?://(?<origin_host>[^/]+)" $origin_host;
+  default                            $http_host;
 }
 
 server {
@@ -23,52 +32,69 @@ server {
   deny all;
 
   access_log off;
+  root @UI_ROOT@;
+  more_set_headers "X-Content-Type-Options: nosniff";
 
-  # How every request reaches the real UI: TLS with its self-signed certificate on the loopback.
+  # The set of files is small and changes only with an update.
+  open_file_cache max=64 inactive=5m;
+  open_file_cache_valid 1m;
+
+  # Settings of every request that goes to the backend.
   proxy_http_version 1.1;
   proxy_set_header Connection "";
-  proxy_ssl_server_name on;
-  proxy_ssl_name npmplus-ingress;
-  proxy_ssl_verify off;
   proxy_set_header Host $http_host;
-  proxy_set_header Origin $npmplus_app_origin;
-  # The UI redirects plain-HTTP clients to HTTPS; the hop in front of it is HTTPS already.
-  proxy_set_header X-Forwarded-Proto https;
-  # sub_filter cannot rewrite compressed responses.
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header X-Forwarded-Proto $npmplus_app_scheme;
+  proxy_set_header X-Forwarded-Host $npmplus_app_host;
+  # nginx compresses the answers itself; the backend should not.
   proxy_set_header Accept-Encoding "";
 
   # Health probe of the Supervisor watchdog: answers 200 only while the NPMplus API is up.
   location = /healthz {
-    proxy_pass https://npmplus_app_ui/api;
+    proxy_pass http://npmplus_app_backend/api;
   }
 
   # Browser-side helper of the ingress integration (see assets/shim.js).
   location /_npmplus_app/ {
     alias @SHARE_DIR@/assets/;
-    add_header Cache-Control "no-cache";
+    more_set_headers "Cache-Control: no-cache";
   }
 
+  # The file names of the bundles contain a hash of their content, so they never change.
+  # The image ships them precompressed (gzip, brotli, zstd), which nginx serves as they are.
+  location /assets/ {
+    more_set_headers "Cache-Control: public, max-age=31536000, immutable";
+  }
+
+  location /images/ {
+    more_set_headers "Cache-Control: public, max-age=86400";
+  }
+
+  location /images/gravatar/ {
+    more_set_headers "Content-Security-Policy: @CSP_GRAVATAR@";
+    more_set_headers "Cache-Control: no-cache";
+    alias /data/npmplus/gravatar/;
+  }
+
+  location /api {
+    more_set_headers "Content-Security-Policy: @CSP_API@";
+    proxy_pass http://npmplus_app_backend;
+  }
+
+  location /api/docs {
+    more_set_headers "Content-Security-Policy: @CSP_DOCS@";
+    proxy_pass http://npmplus_app_backend;
+  }
+
+  # The page itself. Ingress serves the UI below /api/hassio_ingress/<token>. The path arrives in
+  # X-Ingress-Path; the page's own root-relative links are moved below it, and the shim is added as
+  # first script. Every other path is a route of the single page application.
   location / {
-    proxy_pass https://npmplus_app_ui;
+    more_set_headers "Content-Security-Policy: @CSP_ROOT@";
+    more_set_headers "Cache-Control: no-cache";
+    try_files $uri /index.html;
 
-    # Allow the UI to be shown inside the Home Assistant frame.
-    proxy_hide_header X-Frame-Options;
-    proxy_hide_header Cross-Origin-Embedder-Policy;
-    proxy_hide_header Cross-Origin-Opener-Policy;
-    proxy_hide_header Cross-Origin-Resource-Policy;
-    # Keep the UI's content security policy, minus what breaks under ingress: the frame ban and
-    # the forced upgrade to HTTPS (Home Assistant itself is often served over plain HTTP).
-    header_filter_by_lua_block {
-      local policy = ngx.header["Content-Security-Policy"]
-      if policy then
-        policy = policy:gsub("frame%-ancestors 'none'", "frame-ancestors 'self'")
-        policy = policy:gsub("upgrade%-insecure%-requests;?%s*", "")
-        ngx.header["Content-Security-Policy"] = policy
-      end
-    }
-
-    # Ingress serves the UI below /api/hassio_ingress/<token>. The path arrives in X-Ingress-Path;
-    # the page's own root-relative links are moved below it, and the shim is added as first script.
     sub_filter_once off;
     sub_filter '<head>' '<head><script src="$http_x_ingress_path/_npmplus_app/shim.js"></script>';
     sub_filter 'src="/' 'src="$http_x_ingress_path/';

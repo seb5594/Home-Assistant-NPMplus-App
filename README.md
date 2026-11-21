@@ -7,7 +7,7 @@
 
 <p align="center">
   <a href="https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fseb5594%2FHome-Assistant-Apps"><img src="https://img.shields.io/static/v1?label=Home%20Assistant&amp;message=Add%20app%20repository&amp;color=18BCF2&amp;logo=homeassistant&amp;logoColor=white&amp;style=for-the-badge" alt="Home Assistant" height="28"></a><br>
-  <a href="https://github.com/seb5594/Home-Assistant-NPMplus-App/releases"><img src="https://img.shields.io/static/v1?label=app%20version&amp;message=2026.11.21.1&amp;color=1877A5&amp;style=for-the-badge" alt="app version" height="28"></a>
+  <a href="https://github.com/seb5594/Home-Assistant-NPMplus-App/releases"><img src="https://img.shields.io/static/v1?label=app%20version&amp;message=2026.11.21.2&amp;color=1877A5&amp;style=for-the-badge" alt="app version" height="28"></a>
   <img src="https://img.shields.io/static/v1?label=image%20pulls&amp;message=4&amp;color=1877A5&amp;style=for-the-badge" alt="image pulls" height="28"><br>
   <img src="https://img.shields.io/static/v1?label=stage&amp;message=stable&amp;color=2F855A&amp;style=flat" alt="stage" height="20">
   <img src="https://img.shields.io/static/v1?label=ingress&amp;message=enabled&amp;color=7C3AED&amp;style=flat" alt="ingress" height="20">
@@ -90,6 +90,9 @@ self-signed certificate. Port 81 does not need to be published for this.
   [`migration.sh`](npmplus/rootfs/usr/local/lib/npmplus-app/migration.sh).
 - **Architectures.** amd64 and aarch64, the platforms NPMplus itself is built for. armv7, armhf and
   i386 (the legacy platforms of the base image) are not offered: NPMplus ships no binaries for them.
+- **A fast sidebar entry.** The app's nginx serves the admin interface files directly and hands only the
+  API to the NPMplus backend, over its unix socket. The files are compressed once when the image is
+  built, so a request costs next to nothing.
 - **Two small changes to the admin interface** are made when the image is built: its router learns
   about the ingress path and it starts in dark mode instead of following the browser. The build
   fails if an upstream update moves the code these changes rely on, so they can never be skipped

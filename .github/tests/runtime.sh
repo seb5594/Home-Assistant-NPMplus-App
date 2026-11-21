@@ -294,6 +294,33 @@ EOF
     || fail "nginx rejects the ingress config"
 }
 
+ingress_serves_every_route_of_the_upstream_ui() {
+  # The ingress server mirrors the locations of the UI virtual host. A new one upstream must fail here.
+  write_options '{}'
+  local rendered location missing=()
+  rendered=$(ingress::render_config)
+  while IFS= read -r location; do
+    grep -qE "^[[:space:]]*location (= )?${location} " <<< "$rendered" || missing+=("$location")
+  done < <(awk '$1 == "location" { print $2 }' "$UPSTREAM_UI_CONF")
+  ((${#missing[@]} == 0)) || fail "the ingress server lacks the upstream UI routes: ${missing[*]}"
+}
+
+ingress_uses_the_socket_of_the_upstream_backend() {
+  local socket
+  socket=$(sed -n 's/^[[:space:]]*server \(unix:[^;]*\);.*/\1/p' "$UPSTREAM_UI_CONF" | head -n 1)
+  assert_contains "$(cat "${INGRESS_SHARE_DIR}/nginx.conf.tpl")" "server ${socket};" "backend socket"
+}
+
+ingress_policies_follow_upstream_and_allow_the_frame() {
+  write_options '{}'
+  local rendered
+  rendered=$(ingress::render_config)
+  assert_contains "$rendered" "frame-ancestors 'self'" "Home Assistant may frame the page"
+  [[ $rendered != *"frame-ancestors 'none'"* ]] || fail "the frame ban must be gone"
+  [[ $rendered != *upgrade-insecure-requests* ]] || fail "plain HTTP must not be upgraded"
+  assert_contains "$(ingress::policy /)" "sha256-" "the hashes of inline scripts come along"
+}
+
 ingress_template_typos_fail_loudly() {
   local status=0
   INGRESS_SHARE_DIR="${SANDBOX}/share"
@@ -311,6 +338,17 @@ frontend_is_patched() {
   grep -q '__npmplusLocation||' "$bundle" || fail "router patch missing"
   grep -q 'prefers-color-scheme' "$bundle" && fail "dark default patch missing"
   return 0
+}
+
+frontend_is_precompressed() {
+  local bundle
+  bundle=$(ls /app/frontend/assets/index-*.js)
+  [[ -s ${bundle}.gz && -s ${bundle}.br && -s ${bundle}.zst ]] || fail "the main bundle has no compressed variants"
+  # The variants must carry the patched content, not the original one.
+  gzip -dc "${bundle}.gz" | cmp -s - "$bundle" || fail "the gzip variant differs from the bundle"
+  brotli -dc "${bundle}.br" | cmp -s - "$bundle" || fail "the brotli variant differs from the bundle"
+  zstd -dcq "${bundle}.zst" | cmp -s - "$bundle" || fail "the zstd variant differs from the bundle"
+  assert_no_file /app/frontend/index.html.gz "index.html must stay uncompressed for the ingress rewrite"
 }
 
 ingress_shim_is_valid_javascript() {
@@ -344,7 +382,11 @@ scenario migration_reports_a_missing_source migration_reports_a_missing_source
 scenario migration_imports_a_manual_folder migration_imports_a_manual_folder
 scenario migration_reads_a_database_in_use migration_reads_a_database_in_use
 scenario ingress_config_is_valid_nginx ingress_config_is_valid_nginx
+scenario ingress_serves_every_route_of_the_upstream_ui ingress_serves_every_route_of_the_upstream_ui
+scenario ingress_uses_the_socket_of_the_upstream_backend ingress_uses_the_socket_of_the_upstream_backend
+scenario ingress_policies_follow_upstream_and_allow_the_frame ingress_policies_follow_upstream_and_allow_the_frame
 scenario ingress_template_typos_fail_loudly ingress_template_typos_fail_loudly
 scenario frontend_is_patched frontend_is_patched
+scenario frontend_is_precompressed frontend_is_precompressed
 scenario ingress_shim_is_valid_javascript ingress_shim_is_valid_javascript
 scenario upstream_programs_run_on_the_base_image upstream_programs_run_on_the_base_image

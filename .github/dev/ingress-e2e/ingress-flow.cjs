@@ -28,11 +28,10 @@ const step = (message) => console.log(`- ${message}`);
   await frame.getByPlaceholder("Email address").fill(ADMIN.email);
   await frame.getByPlaceholder("New Password").fill(ADMIN.password);
   await frame.getByRole("button", { name: "Save" }).click();
-  await frame.locator("footer.footer .npmplus-app-footer").waitFor({ timeout: 20000 });
-  step("setup finished, dashboard and app footer visible");
+  await frame.locator("footer.footer").waitFor({ timeout: 20000 });
+  step("setup finished, dashboard visible");
   assert.equal(await page.evaluate(() => document.querySelector("#panel").contentDocument.body.dataset.theme), "dark");
   step("dark theme is the default");
-  assert.match(await frame.locator(".npmplus-app-footer").innerText(), /NPMplus for Home Assistant .*Sebastian Schmidt/s);
   await page.screenshot({ path: "ingress-dashboard.png" });
 
   const links = await frame.locator("a.nav-link, .dropdown-item[href]").evaluateAll((elements, prefix) =>

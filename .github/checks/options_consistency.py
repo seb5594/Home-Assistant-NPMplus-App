@@ -21,7 +21,7 @@ MAP_FILE = APP / "rootfs/usr/local/share/npmplus-app/option-env.map"
 INGRESS_MODULE = APP / "rootfs/usr/local/lib/npmplus-app/ingress.sh"
 
 # Options handled by the app's own code instead of an NPMplus environment variable.
-APP_OPTIONS = {"interface.support_footer", "advanced.extra_environment", "migration.source"}
+APP_OPTIONS = {"advanced.extra_environment", "migration.source"}
 
 
 def leaf_options(schema, prefix=""):

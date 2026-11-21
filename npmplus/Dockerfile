@@ -1,7 +1,7 @@
 # NPMplus for Home Assistant: the files of an upstream release on the shared Home Assistant base image.
 # renovate: datasource=docker depName=docker.io/zoeyvid/npmplus
 ARG NPMPLUS_VERSION=2026-11-18-r1
-ARG BUILD_FROM=ghcr.io/seb5594/home-assistant-base:3.24-2026.11.0@sha256:d116b9e5b612e6fcd997c86642d21b61953fcbe390c39c9b03443a577ed5e2a6
+ARG BUILD_FROM=ghcr.io/seb5594/home-assistant-base:3.24-2026.11.0
 
 FROM docker.io/zoeyvid/npmplus:${NPMPLUS_VERSION} AS npmplus
 
@@ -29,11 +29,10 @@ COPY run.sh entrypoint.sh /
 RUN chmod a+x /run.sh /entrypoint.sh \
     && /usr/local/lib/npmplus-app/patch-frontend.sh
 
-ARG BUILD_VERSION=2026.11.21
+ARG BUILD_VERSION=2026.11.21.1
 ARG BUILD_ARCH=amd64
 ENV NODE_ENV=production \
-    NODE_OPTIONS=--use-openssl-ca \
-    NPMPLUS_APP_VERSION=${BUILD_VERSION}
+    NODE_OPTIONS=--use-openssl-ca
 LABEL io.hass.version="${BUILD_VERSION}" \
     io.hass.type="addon" \
     io.hass.arch="${BUILD_ARCH}" \

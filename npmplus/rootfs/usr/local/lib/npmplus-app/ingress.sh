@@ -11,6 +11,10 @@
 #   * serves a browser shim that teaches the UI about the ingress path and adds the app footer.
 
 INGRESS_PORT="${INGRESS_PORT:-5594}"
+# The gateway of the Supervisor's network: where the Supervisor reaches an app on the host network.
+INGRESS_ADDRESS="${INGRESS_ADDRESS:-172.30.32.1}"
+# The Supervisor itself, the only client that may use the server.
+INGRESS_SUPERVISOR_ADDRESS="${INGRESS_SUPERVISOR_ADDRESS:-172.30.32.2}"
 INGRESS_SHARE_DIR="${INGRESS_SHARE_DIR:-/usr/local/share/npmplus-app/ingress}"
 NGINX_CONF_DIR="${NGINX_CONF_DIR:-/usr/local/nginx/conf/conf.d}"
 UI_ROOT="${UI_ROOT:-/app/frontend}"
@@ -33,26 +37,18 @@ ingress::policy() {
   printf '%s' "$policy"
 }
 
-# The footer is on unless the user switched it off.
-ingress::support_footer_flag() {
-  if [[ $(options::get interface.support_footer) == false ]]; then
-    printf 'false'
-  else
-    printf 'true'
-  fi
-}
-
 # Renders the nginx template; every @NAME@ placeholder must be known, so typos fail loudly.
 ingress::render_config() {
   local template="${INGRESS_SHARE_DIR}/nginx.conf.tpl"
   local rendered
 
   rendered=$(sed \
+    -e "s|@INGRESS_ADDRESS@|${INGRESS_ADDRESS}|g" \
     -e "s|@INGRESS_PORT@|${INGRESS_PORT}|g" \
+    -e "s|@SUPERVISOR_ADDRESS@|${INGRESS_SUPERVISOR_ADDRESS}|g" \
     -e "s|@SHARE_DIR@|${INGRESS_SHARE_DIR}|g" \
     -e "s|@UI_ROOT@|${UI_ROOT}|g" \
     -e "s|@APP_VERSION@|${NPMPLUS_APP_VERSION:-dev}|g" \
-    -e "s|@SUPPORT_FOOTER@|$(ingress::support_footer_flag)|g" \
     -e "s|@CSP_ROOT@|$(ingress::policy /)|g" \
     -e "s|@CSP_API@|$(ingress::policy /api)|g" \
     -e "s|@CSP_DOCS@|$(ingress::policy /api/docs)|g" \
@@ -68,5 +64,5 @@ ingress::render_config() {
 ingress::install() {
   mkdir -p "$NGINX_CONF_DIR"
   ingress::render_config > "${NGINX_CONF_DIR}/ingress.conf"
-  log::info "Ingress listens on port ${INGRESS_PORT}"
+  log::info "Ingress listens on ${INGRESS_ADDRESS}:${INGRESS_PORT}"
 }

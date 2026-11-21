@@ -46,6 +46,12 @@ configuration:
     name: Netzwerk
     description: Welche Protokolle NPMplus anbietet und wie es Clients erkennt.
     fields:
+      http_port:
+        name: HTTP-Port
+        description: Port, auf dem NPMplus HTTP annimmt. Standard 8080, damit Port 80 des Hosts frei bleibt; leite Port 80 deines Routers darauf weiter. Zertifikate per HTTP-01-Challenge funktionieren, solange der Router 80 auf diesen Port abbildet.
+      https_port:
+        name: HTTPS-Port
+        description: Port, auf dem NPMplus HTTPS und HTTP/3 (QUIC) annimmt. Standard 443.
       disable_ipv6:
         name: IPv6 abschalten
         description: IPv6 vollständig deaktivieren. Nötig auf Hosts ohne IPv6, sonst startet nginx nicht.
@@ -183,13 +189,6 @@ configuration:
       authentik_upstream:
         name: authentik
         description: Zum Beispiel https://127.0.0.1:9443. Funktioniert nur mit dem eingebetteten Outpost.
-  interface:
-    name: Oberfläche
-    description: Die Admin-Oberfläche in Home Assistant.
-    fields:
-      support_footer:
-        name: App-Fußzeile anzeigen
-        description: Fügt unter der Fußzeile der Admin-Oberfläche eine Zeile mit App-Version und Support-Links hinzu. Standardmäßig an.
   advanced:
     name: Erweitert
     description: Für alles, was die anderen Optionen nicht abdecken.
@@ -204,8 +203,3 @@ configuration:
       source:
         name: Importieren aus
         description: "community_app liest die Daten der Home-Assistant-Community-App für Nginx Proxy Manager direkt (vorher stoppen), community_app_edge dasselbe für deren Edge-Version. import_folder liest Daten, die du in den Import-Ordner der Konfiguration dieser App kopiert hast. Hat NPMplus bereits eigene Daten, wird nichts importiert."
-network:
-  80/tcp: HTTP, auch für ACME-HTTP-01-Challenges
-  443/tcp: HTTPS (HTTP/1.1 und HTTP/2)
-  443/udp: HTTP/3 (QUIC)
-  81/tcp: Admin-Oberfläche per HTTPS mit selbstsigniertem Zertifikat (das Ingress-Panel funktioniert auch ohne)

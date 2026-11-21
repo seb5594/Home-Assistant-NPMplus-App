@@ -10,8 +10,8 @@ HTTP/3, more security by default and many extra features.
 1. Start the app and open **NPMplus** in the sidebar.
 2. Create the administrator account when asked. (To skip the wizard, set the initial administrator
    under **Accounts and sessions** before the first start.)
-3. Forward ports **80** and **443** (TCP, and 443 UDP for HTTP/3) from your router to your Home
-   Assistant machine.
+3. Forward port **80** of your router to port **8080** of your Home Assistant machine, and port
+   **443** (TCP, and UDP for HTTP/3) to 443.
 4. Add a proxy host in NPMplus and request a certificate for it.
 
 Coming from Nginx Proxy Manager? Your hosts, users and certificates can be taken over, see
@@ -22,22 +22,30 @@ Coming from Nginx Proxy Manager? Your hosts, users and certificates can be taken
 The sidebar entry shows the NPMplus interface through Home Assistant's ingress: it needs no
 extra port and is protected by your Home Assistant login. The interface starts in dark mode; the
 switch in its header changes that, and the choice is remembered. Below its footer the app adds a line
-with its version and support links; **Interface → Show app footer** turns it off.
+with its version and support links.
 
-Optionally the interface is also reachable over HTTPS on port 81, with a self-signed certificate.
-That port is off by default; enable it under **Network** in the app configuration if you want
-it, for example to use the API or OpenID Connect login.
+The same port, 5594, also carries the interface over HTTPS with a self-signed certificate, but only on
+the loopback interface of the host (for the API and for tools on the same machine). To reach it from
+the LAN, for example for OpenID Connect login, set `NPM_LISTEN_LOCALHOST=false` and a different
+`NPM_PORT` under **Advanced → Additional environment variables**.
 
-## Ports
+## Network
+
+The app uses the network of the host, so it sees the real address of every client and HTTP/3 needs
+no port mapping.
 
 | Port | Purpose |
 | --- | --- |
-| `80/tcp` | HTTP, also used by certificate validation (HTTP-01) |
+| `8080/tcp` | HTTP, also used by certificate validation (HTTP-01). Forward port 80 of your router here. |
 | `443/tcp` | HTTPS |
 | `443/udp` | HTTP/3 (QUIC) |
-| `81/tcp` | Admin interface over HTTPS, off by default |
+| `5594/tcp` | Admin interface: through the Supervisor's network for the sidebar entry, over HTTPS on the loopback interface |
 
-The host side of each port can be changed under **Network** in the app configuration.
+The HTTP and HTTPS ports can be changed under **Network** in the app configuration.
+
+Names of the Home Assistant network (`homeassistant`, the hostnames of other apps) are not resolved on
+the host. Proxy hosts target `127.0.0.1` for Home Assistant, and the address of the machine plus the
+port for other apps.
 
 ## Configuration
 
@@ -55,7 +63,7 @@ variables** takes any number of them, one `NAME=value` per entry, for example:
 advanced:
   extra_environment:
     # Let the admin interface listen on localhost only: reachable through the sidebar entry,
-    # but no longer from other apps or over port 81.
+    # (it is limited to the loopback interface already; this line is an example only).
     - NPM_LISTEN_LOCALHOST=true
 ```
 
@@ -96,14 +104,15 @@ The old data is only read, never changed. Nothing is imported once NPMplus has d
 
 ## Home Assistant behind NPMplus
 
-Add a proxy host that forwards to `homeassistant` on port `8123` (scheme `http`) with websockets
+Add a proxy host that forwards to `127.0.0.1` on port `8123` (scheme `http`) with websockets
 enabled, and tell Home Assistant to trust the proxy in `configuration.yaml`:
 
 ```yaml
 http:
   use_x_forwarded_for: true
   trusted_proxies:
-    - 172.30.33.0/24
+    - 127.0.0.1
+    - ::1
 ```
 
 ## See your proxy hosts in Home Assistant
@@ -112,16 +121,18 @@ The community integration [ha-npmplus](https://github.com/metaathron/ha-npmplus)
 hosts, streams and certificates as devices and lets you switch hosts on and off from Home
 Assistant. When you set it up, enter:
 
-- **Host:** the hostname of this app, shown on its Info page (for example `4c7fee11-npmplus`),
-- **Port:** `81`,
+- **Host:** `127.0.0.1` (or the address of your Home Assistant machine),
+- **Port:** `5594`,
 - the email and password of an NPMplus user, and turn off the verification of the SSL
-  certificate: port 81 uses a self-signed one.
+  certificate: that port uses a self-signed one.
 
-Port 81 does not have to be enabled for this; Home Assistant reaches it over the internal network.
+The port answers on the loopback interface only, so Home Assistant has to run on the same host, which
+it does on Home Assistant OS.
 
 ## Limitations
 
-- OpenID Connect login and GoAccess statistics need the direct HTTPS port, not the sidebar entry.
+- OpenID Connect login and GoAccess statistics need the HTTPS port, which listens on the loopback
+  interface only by default, not the sidebar entry.
 - Starting with a database written by a newer Nginx Proxy Manager than NPMplus supports is not
   possible; the import stops with a message instead of damaging anything.
 

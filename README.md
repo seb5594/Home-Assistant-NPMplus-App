@@ -7,7 +7,7 @@
 
 <p align="center">
   <a href="https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fseb5594%2FHome-Assistant-Apps"><img src="https://img.shields.io/static/v1?label=Home%20Assistant&amp;message=Add%20app%20repository&amp;color=18BCF2&amp;logo=homeassistant&amp;logoColor=white&amp;style=for-the-badge" alt="Home Assistant" height="28"></a><br>
-  <a href="https://github.com/seb5594/Home-Assistant-NPMplus-App/releases/tag/2026.11.21.5"><img src="https://img.shields.io/static/v1?label=app%20version&amp;message=2026.11.21.5&amp;color=1877A5&amp;style=for-the-badge" alt="app version" height="28"></a>
+  <a href="https://github.com/seb5594/Home-Assistant-NPMplus-App/releases"><img src="https://img.shields.io/static/v1?label=app%20version&amp;message=2026.11.21.6&amp;color=1877A5&amp;style=for-the-badge" alt="app version" height="28"></a>
   <img src="https://img.shields.io/static/v1?label=image%20pulls&amp;message=24&amp;color=1877A5&amp;style=for-the-badge" alt="image pulls" height="28"><br>
   <img src="https://img.shields.io/static/v1?label=stage&amp;message=experimental&amp;color=2F855A&amp;style=flat" alt="stage" height="20">
   <img src="https://img.shields.io/static/v1?label=ingress&amp;message=enabled&amp;color=7C3AED&amp;style=flat" alt="ingress" height="20">
@@ -55,7 +55,8 @@ Home Assistant; the proxy itself is the unchanged upstream release, put on the s
 
 1. Add this app repository to Home Assistant with the button above and install **NPMplus**.
 2. Start it, open **NPMplus** in the sidebar and create your administrator.
-3. Forward ports 80 and 443 (TCP, and 443 UDP for HTTP/3) from your router to Home Assistant.
+3. Forward port 80 of your router to port **8080** of Home Assistant and port 443 (TCP, and UDP for
+   HTTP/3) to 443.
 4. Add your first proxy host.
 
 Coming from Nginx Proxy Manager? Read the [migration guide](docs/MIGRATION.md) **before** the first
@@ -76,15 +77,22 @@ nginx snippets come along. There is no way back to Nginx Proxy Manager, so take 
 
 The community integration **[ha-npmplus](https://github.com/metaathron/ha-npmplus)** matches this app:
 it turns your proxy hosts, streams and certificates into devices and entities, so you can switch a
-host on or off or watch certificate expiry from Home Assistant. Use the app's hostname (shown on its
-Info page), port `81`, an NPMplus user, and leave the SSL verification off because port 81 uses a
-self-signed certificate. Port 81 does not need to be published for this.
+host on or off or watch certificate expiry from Home Assistant. Use `127.0.0.1` (or the address of your
+Home Assistant machine), port `5594`, an NPMplus user, and leave the SSL verification off because that
+port uses a self-signed certificate. It only answers on the loopback interface, so Home Assistant has
+to run on the same host, which it does on Home Assistant OS.
 
 ## Good to know
 
-- **Network.** The app runs in the Home Assistant network with ports 80, 443 and 443/udp published.
-  Proxy hosts can target `homeassistant:8123` or any other app by its hostname.
-- **Port 81** (admin interface over HTTPS) is off by default. The sidebar entry does not need it.
+- **Network.** The app uses the network of the host: it sees the real address of every client, and
+  HTTP/3 needs no port mapping. It listens on 8080 for HTTP (so port 80 of the host stays free; the
+  router forwards 80 to it) and on 443 for HTTPS and HTTP/3. Both can be changed under *Network* in the
+  configuration. Proxy hosts therefore target `127.0.0.1:8123` for Home Assistant or the address of the
+  machine and the port of another app. Names of the Home Assistant network such as `homeassistant`
+  are not resolved on the host; hosts taken over from an app in that network need a new target.
+- **Port 5594.** The sidebar entry reaches the admin interface on this port through the Supervisor's
+  network only. The same port also carries the admin interface over HTTPS with a self-signed
+  certificate, on the loopback interface. The sidebar entry does not need it.
   OpenID Connect login and GoAccess need it.
 - **Access to other apps' configuration.** To import the Community App's data directly, this app has
   read-only access to the configuration folders of all apps. It reads them only while a migration
@@ -94,7 +102,6 @@ self-signed certificate. Port 81 does not need to be published for this.
 - **Architectures.** amd64 and aarch64, the platforms NPMplus itself is built for. armv7, armhf and
   i386 (the legacy platforms of the base image) are not offered: NPMplus ships no binaries for them.
 - **An app footer** below the footer of the admin interface, with the app version and support links.
-  It is on by default; *Interface → Show app footer* turns it off.
 - **A fast sidebar entry.** The app's nginx serves the admin interface files directly and hands only the
   API to the NPMplus backend, over its unix socket. The files are compressed once when the image is
   built, so a request costs next to nothing.

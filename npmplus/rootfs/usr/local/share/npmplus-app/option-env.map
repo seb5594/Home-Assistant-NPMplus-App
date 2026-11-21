@@ -20,6 +20,8 @@ certificates.renew_interval_hours=CERTBOT_RUN_INTERVAL
 certificates.default_certificate_id=DEFAULT_CERT_ID
 
 # --- Network -----------------------------------------------------------------
+network.http_port=HTTP_PORT
+network.https_port=HTTPS_PORT
 network.disable_ipv6=DISABLE_IPV6
 network.disable_http=DISABLE_HTTP
 network.disable_http3=DISABLE_H3_QUIC

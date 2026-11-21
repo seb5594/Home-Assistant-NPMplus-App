@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026.11.21.6
+
+* Fixed the 403 error of the sidebar entry: NPMplus replaces the address of a request with the client address from `X-Forwarded-For`, so the check for the Supervisor never matched when Home Assistant passed the browser's address on. The check now looks at the address of the connection itself.
+* The app uses the network of the host. It listens on 8080 for HTTP (forward port 80 of your router to it) and on 443 for HTTPS and HTTP/3; both ports are options under *Network*. The ingress server listens on the Supervisor's gateway only, and the admin interface over HTTPS moved to port 5594 on the loopback interface. Proxy hosts that point at names of the Home Assistant network need a new target, see the migration guide.
+* The options area *Interface* is gone; the footer is always shown.
+* The description now starts with "Nginx Proxy Manager", which is what the store search looks at.
+
 ## 2026.11.21.5
 
 * The app is marked as experimental. It is new, and the ingress integration and the import of other Nginx Proxy Manager installations have only been exercised with test data so far.

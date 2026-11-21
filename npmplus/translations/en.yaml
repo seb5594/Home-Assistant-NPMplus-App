@@ -46,6 +46,12 @@ configuration:
     name: Network
     description: Which protocols NPMplus serves and how it learns about clients.
     fields:
+      http_port:
+        name: HTTP port
+        description: Port NPMplus listens on for HTTP. Default 8080, so port 80 of the host stays free; forward port 80 of your router to it. Certificates by HTTP-01 challenge work as long as the router maps 80 to this port.
+      https_port:
+        name: HTTPS port
+        description: Port NPMplus listens on for HTTPS and HTTP/3 (QUIC). Default 443.
       disable_ipv6:
         name: Disable IPv6
         description: Turn IPv6 off completely. Needed on hosts where IPv6 is disabled, otherwise nginx cannot start.
@@ -183,13 +189,6 @@ configuration:
       authentik_upstream:
         name: authentik
         description: For example https://127.0.0.1:9443. Works with the embedded outpost only.
-  interface:
-    name: Interface
-    description: The admin UI inside Home Assistant.
-    fields:
-      support_footer:
-        name: Show app footer
-        description: Adds a line with the app version and support links below the footer of the admin UI. On by default.
   advanced:
     name: Advanced
     description: For everything the other options do not cover.
@@ -204,8 +203,3 @@ configuration:
       source:
         name: Import from
         description: "community_app reads the data of the Home Assistant Community App for Nginx Proxy Manager directly (stop it first), community_app_edge does the same for its edge version. import_folder reads data you copied to the import folder of this app's configuration. Nothing is imported once NPMplus has data of its own."
-network:
-  80/tcp: HTTP, also used for ACME HTTP-01 challenges
-  443/tcp: HTTPS (HTTP/1.1 and HTTP/2)
-  443/udp: HTTP/3 (QUIC)
-  81/tcp: Admin UI over HTTPS with a self-signed certificate (the ingress panel works without it)

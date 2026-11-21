@@ -12,8 +12,8 @@ account, so nothing is requested again) and your custom nginx snippets.
   Nginx Proxy Manager is not possible; with the backup you can always return.
 - **The old data is only read, never changed.** If something goes wrong, stop NPMplus and start the
   old app again.
-- Both apps want ports 80 and 443. Stop (and disable *Start on boot* of) the old app before you
-  start NPMplus.
+- Both apps want port 443. Stop (and disable *Start on boot* of) the old app before you start
+  NPMplus.
 - NPMplus refuses a database written by a **newer** Nginx Proxy Manager than it contains.
   This app ships NPMplus based on Nginx Proxy Manager 2.15; databases of 2.16 (the current
   Community App) work. If you see *"written by a newer Nginx Proxy Manager"* in the log, nothing
@@ -132,6 +132,12 @@ setting first; see guide B.)
 ## After the import
 
 NPMplus changed many forms compared to Nginx Proxy Manager, so go through the hosts once:
+
+- **Forward the port.** NPMplus listens on 8080 for HTTP instead of 80: let your router forward port 80
+  to 8080 (443 stays 443).
+- **Check the targets.** NPMplus uses the network of the host, where the names of the Home Assistant
+  network (`homeassistant`, `<id>-<app>.local.hass.io`) are not resolved. Change such targets to
+  `127.0.0.1` for Home Assistant and to the address of the machine plus the port for other apps.
 
 - Open each proxy host and check its settings. Hosts that were created with the old forms may
   need to be saved again.

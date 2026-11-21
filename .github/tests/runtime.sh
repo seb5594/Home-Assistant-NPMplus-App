@@ -118,6 +118,21 @@ options_are_exported() {
   [[ -z ${ACME_SERVER+x} ]] || fail "an unset option must not be exported"
 }
 
+options_apply_the_defaults_of_the_app() {
+  local name
+  write_options '{}'
+  options::export_environment > /dev/null
+  assert_equals 8080 "$HTTP_PORT" "HTTP stays off port 80 of the host"
+  assert_equals 5594 "$NPM_PORT" "the admin interface sits on the ingress port"
+  assert_equals true "$NPM_LISTEN_LOCALHOST" "the admin interface stays on the loopback interface"
+
+  for name in HTTP_PORT NPM_PORT NPM_LISTEN_LOCALHOST; do unset "$name"; done
+  write_options '{"network": {"http_port": 80}, "advanced": {"extra_environment": ["NPM_LISTEN_LOCALHOST=false"]}}'
+  options::export_environment > /dev/null
+  assert_equals 80 "$HTTP_PORT" "an option beats the default"
+  assert_equals false "$NPM_LISTEN_LOCALHOST" "an additional variable beats the default"
+}
+
 options_do_not_leak_into_the_log() {
   write_options '{"account": {"initial_admin_password": "s3cret-value"}, "advanced": {"extra_environment": ["COOKIE_SECRET=another-secret"]}}'
   local output
@@ -316,8 +331,12 @@ ingress_config_is_valid_nginx() {
   local config="${SANDBOX}/nginx-conf.d/ingress.conf"
   assert_file "$config" "config written"
   [[ $(cat "$config") != *@*@* ]] || fail "all placeholders are replaced"
-  assert_contains "$(cat "$config")" "listen 5594 default_server;" "ingress port"
-  assert_contains "$(cat "$config")" 'data-support-footer="true"' "the footer is on by default"
+  assert_contains "$(cat "$config")" "listen 172.30.32.1:5594 default_server;" "the server listens on the gateway only"
+  assert_contains "$(cat "$config")" 'data-version=' "the shim gets the app version"
+
+  # nginx binds the addresses while it tests a configuration, and the gateway of the Supervisor's
+  # network only exists on a Home Assistant machine, so the syntax check uses a loopback address.
+  INGRESS_ADDRESS=127.0.0.1 ingress::render_config > "$config"
 
   mkdir -p "${SANDBOX}/nginx"
   cat > "${SANDBOX}/nginx/nginx.conf" <<EOF
@@ -334,11 +353,6 @@ EOF
     || fail "nginx rejects the ingress config"
 }
 
-ingress_footer_can_be_switched_off() {
-  write_options '{"interface": {"support_footer": false}}'
-  assert_contains "$(ingress::render_config)" 'data-support-footer="false"' "footer off"
-}
-
 ingress_footer_texts_are_in_the_shim() {
   # The footer wording is part of the shim; keep the pieces people asked for from getting lost.
   local shim
@@ -348,6 +362,46 @@ ingress_footer_texts_are_in_the_shim() {
   assert_contains "$shim" "Support my work " "support line"
   assert_contains "$shim" '\u2615' "coffee"
   assert_contains "$shim" '\uD83C\uDF7A' "beer"
+}
+
+ingress_trusts_the_connection_not_the_forwarded_address() {
+  # NPMplus replaces $remote_addr with the client address from X-Forwarded-For, which for ingress is
+  # the browser's. The access check must still see the Supervisor. A real nginx with the same realip
+  # settings as NPMplus answers requests; 127.0.0.1 plays the Supervisor.
+  write_options '{}'
+  local port=15594 dir="${SANDBOX}/realip" config shim status nginx_pid attempt=0
+  mkdir -p "${dir}/logs"
+  INGRESS_PORT=$port INGRESS_ADDRESS=0.0.0.0 INGRESS_SUPERVISOR_ADDRESS=127.0.0.1 ingress::render_config > "${dir}/ingress.conf"
+  config="${dir}/nginx.conf"
+  cat > "$config" <<NGINX
+daemon off;
+error_log ${dir}/error.log;
+pid ${dir}/nginx.pid;
+events {}
+http {
+  access_log off;
+  real_ip_header X-Forwarded-For;
+  real_ip_recursive on;
+  set_real_ip_from 127.0.0.0/8;
+  set_real_ip_from 192.168.0.0/16;
+  include ${dir}/ingress.conf;
+}
+NGINX
+  nginx -p "$dir" -c "$config" &
+  nginx_pid=$!
+  until curl -s -o /dev/null "http://127.0.0.1:${port}/"; do
+    ((++attempt < 30)) || fail "nginx did not start"
+    sleep 0.2
+  done
+
+  shim="http://127.0.0.1:${port}/_npmplus_app/shim.js"
+  status=$(curl -s -o /dev/null -w '%{http_code}' -H 'X-Forwarded-For: 192.168.69.163, 127.0.0.1' "$shim")
+  assert_equals 200 "$status" "a request with a forwarded client address is accepted"
+  # Any other address on the machine is not the Supervisor, whatever it claims in X-Forwarded-For.
+  status=$(curl -s -o /dev/null -w '%{http_code}' -H 'X-Forwarded-For: 127.0.0.1' --interface 127.0.0.2 "$shim" || true)
+  kill "$nginx_pid"
+  wait "$nginx_pid" 2> /dev/null || true
+  assert_equals 403 "$status" "another client is refused even when it claims to be the Supervisor"
 }
 
 ingress_serves_every_route_of_the_upstream_ui() {
@@ -426,6 +480,7 @@ upstream_programs_run_on_the_base_image() {
 # ---- run ---------------------------------------------------------------------------------------
 
 scenario options_are_exported options_are_exported
+scenario options_apply_the_defaults_of_the_app options_apply_the_defaults_of_the_app
 scenario options_do_not_leak_into_the_log options_do_not_leak_into_the_log
 scenario every_mapped_variable_exists_upstream every_mapped_variable_exists_upstream
 scenario storage_links_user_folders storage_links_user_folders
@@ -441,8 +496,8 @@ scenario migration_reports_a_missing_source migration_reports_a_missing_source
 scenario migration_imports_a_manual_folder migration_imports_a_manual_folder
 scenario migration_reads_a_database_in_use migration_reads_a_database_in_use
 scenario ingress_config_is_valid_nginx ingress_config_is_valid_nginx
-scenario ingress_footer_can_be_switched_off ingress_footer_can_be_switched_off
 scenario ingress_footer_texts_are_in_the_shim ingress_footer_texts_are_in_the_shim
+scenario ingress_trusts_the_connection_not_the_forwarded_address ingress_trusts_the_connection_not_the_forwarded_address
 scenario ingress_serves_every_route_of_the_upstream_ui ingress_serves_every_route_of_the_upstream_ui
 scenario ingress_uses_the_socket_of_the_upstream_backend ingress_uses_the_socket_of_the_upstream_backend
 scenario ingress_policies_follow_upstream_and_allow_the_frame ingress_policies_follow_upstream_and_allow_the_frame

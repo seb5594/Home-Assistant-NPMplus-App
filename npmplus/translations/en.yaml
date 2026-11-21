@@ -1,0 +1,211 @@
+configuration:
+  certificates:
+    name: Certificates
+    description: Free certificates from an ACME provider such as Let's Encrypt.
+    fields:
+      email:
+        name: ACME email address
+        description: Contact address for the ACME account. Required for ZeroSSL and Google Public CA. Only used once, when the account is registered.
+      server:
+        name: ACME server
+        description: "Directory URL of the ACME provider. Default: Let's Encrypt. ZeroSSL: https://acme.zerossl.com/v2/DV90, Google: https://dv.acme-v02.api.pki.goog/directory."
+      profile:
+        name: ACME profile
+        description: Certificate profile requested from the provider, for example shortlived or tlsserver (Let's Encrypt). Use none for the provider's default profile.
+      eab_kid:
+        name: EAB key identifier
+        description: Key identifier for External Account Binding. Required by Google Public CA, optional for ZeroSSL, not supported by Let's Encrypt.
+      eab_hmac_key:
+        name: EAB HMAC key
+        description: HMAC key for External Account Binding. Goes together with the key identifier.
+      key_type:
+        name: Key type
+        description: Type of the certificate key. ecdsa is the default and recommended.
+      key_size:
+        name: Key size
+        description: Curve for ecdsa keys (default secp384r1) or length for rsa keys (default 4096).
+      must_staple:
+        name: OCSP must-staple
+        description: Request must-staple certificates. Supported by ZeroSSL and Google Public CA, not by Let's Encrypt. Implies OCSP stapling.
+      ocsp_stapling:
+        name: OCSP stapling
+        description: Staple OCSP responses to certificates from the ACME provider. Turns off TLS certificate compression.
+      custom_ocsp_stapling:
+        name: OCSP stapling for custom certificates
+        description: Staple OCSP responses to certificates you uploaded yourself, if they support it.
+      verify_acme_tls:
+        name: Verify the TLS certificate of the ACME server
+        description: Leave on unless you use a private ACME server with a self-signed certificate.
+      renew_interval_hours:
+        name: Renewal check interval (hours)
+        description: How often NPMplus looks for certificates that need renewal. Default 3.
+      default_certificate_id:
+        name: Default certificate
+        description: ID of the certificate shown for unknown domains instead of a built-in dummy certificate.
+  network:
+    name: Network
+    description: Which protocols NPMplus serves and how it learns about clients.
+    fields:
+      disable_ipv6:
+        name: Disable IPv6
+        description: Turn IPv6 off completely. Needed on hosts where IPv6 is disabled, otherwise nginx cannot start.
+      disable_http:
+        name: Disable HTTP
+        description: Do not listen on port 80. Certificates via HTTP-01 challenge then need another method (DNS challenge).
+      disable_http3:
+        name: Disable HTTP/3
+        description: Do not offer HTTP/3 and QUIC on port 443/udp.
+      trust_cloudflare:
+        name: Trust Cloudflare
+        description: Fetch the Cloudflare address ranges so nginx sees the real client address behind Cloudflare.
+      proxy_protocol:
+        name: PROXY protocol on all listeners
+        description: Expect the PROXY protocol on every host listener. Needed behind a load balancer that sends it. Overrides the two options below.
+      proxy_protocol_http:
+        name: PROXY protocol on HTTP
+        description: Expect the PROXY protocol on the HTTP listeners only.
+      proxy_protocol_https:
+        name: PROXY protocol on HTTPS
+        description: Expect the PROXY protocol on the HTTPS listeners only. Turns HTTP/3 off.
+  nginx:
+    name: nginx
+    description: Fine tuning of the web server. The defaults suit almost everyone.
+    fields:
+      worker_processes:
+        name: Worker processes
+        description: Number of nginx workers, or auto (default, recommended).
+      worker_connections:
+        name: Worker connections
+        description: Connections per worker. Default 512.
+      force_x25519mlkem768:
+        name: Force X25519MLKEM768
+        description: Allow only the post-quantum key exchange X25519MLKEM768 (and TLS 1.3). Older clients cannot connect.
+      disable_tls12:
+        name: Disable TLS 1.2
+        description: Accept TLS 1.3 only. Safe if all your clients are recent.
+      trust_secp_curves:
+        name: Allow secp curves
+        description: Allow the secp521r1, secp384r1 and secp256r1 curves. On by default; turn off if all clients support X25519.
+      trust_rsa_pkcs1:
+        name: Allow RSA PKCS1 signatures
+        description: Needed by clients that do not support RSA-PSS when you use RSA keys.
+      log_not_found:
+        name: Log 404 errors
+        description: Write 404 responses of static files to the app log.
+      load_njs_module:
+        name: Load the njs module
+        description: Makes JavaScript in nginx configurations possible. Needs manual configuration.
+      load_ldap_module:
+        name: Load the LDAP module
+        description: Needs manual configuration.
+      load_ntlm_module:
+        name: Load the NTLM module
+        description: Needs manual configuration.
+      load_vhost_traffic_status_module:
+        name: Load the virtual host traffic status module
+        description: Needs manual configuration.
+  logging:
+    name: Logs and statistics
+    description: Access logs and the optional GoAccess statistics.
+    fields:
+      rotate_logs:
+        name: Write and rotate access logs
+        description: Write the access log to the app's data folder and rotate it daily. Off by default to spare the disk.
+      rotations:
+        name: Rotations kept
+        description: How many rotated access logs are kept. Default 3.
+      goaccess:
+        name: GoAccess statistics
+        description: Enables GoAccess (and log writing). Available at /goaccess of the admin UI over its direct HTTPS port, for logged-in admins.
+      goaccess_arguments:
+        name: GoAccess arguments
+        description: Extra command line arguments for GoAccess. Replaces the defaults.
+  account:
+    name: Accounts and sessions
+    description: Initial administrator and session handling.
+    fields:
+      initial_admin_email:
+        name: Initial administrator email
+        description: Creates the first administrator at the first start, together with the password. Without both, the setup wizard asks.
+      initial_admin_password:
+        name: Initial administrator password
+        description: Password of the first administrator. Only used at the first start.
+      initial_default_page:
+        name: Default page
+        description: What visitors of unknown domains see. Only applied at the first start; afterwards change it in the admin UI.
+      disable_gravatar:
+        name: Disable Gravatar
+        description: Do not load profile pictures from Gravatar. Users have to save their profile again for this to apply.
+      cookie_secret:
+        name: Cookie secret
+        description: Fixed secret for signing cookies. Without it a new one is generated at every start and logged-in sessions end.
+  oidc:
+    name: OpenID Connect
+    description: Log in to the admin UI through an OpenID Connect provider. Not usable through the ingress panel, only through the direct HTTPS port.
+    fields:
+      redirect_domain:
+        name: Redirect domain
+        description: Domain (with port if needed) the provider redirects back to, without scheme and path.
+      issuer_url:
+        name: Issuer URL
+        description: Issuer URL of the provider.
+      client_id:
+        name: Client ID
+        description: Client ID registered at the provider.
+      client_secret:
+        name: Client secret
+        description: Client secret registered at the provider.
+      require_verified_email:
+        name: Require a verified email address
+        description: Only accept users whose email address the provider marks as verified. Default on.
+      disable_password_login:
+        name: Disable password login
+        description: Allow OpenID Connect only.
+  auth_request:
+    name: Forward authentication
+    description: Address of an authentication service running next to NPMplus, with scheme and port but without path.
+    fields:
+      anubis_upstream:
+        name: Anubis
+        description: For example http://127.0.0.1:8923.
+      tinyauth_upstream:
+        name: Tinyauth
+        description: For example http://127.0.0.1:3000.
+      oauth2proxy_upstream:
+        name: oauth2-proxy
+        description: For example http://127.0.0.1:4180.
+      voidauth_upstream:
+        name: VoidAuth
+        description: For example http://127.0.0.1:3000.
+      authelia_upstream:
+        name: Authelia
+        description: For example http://127.0.0.1:9091.
+      authentik_upstream:
+        name: authentik
+        description: For example https://127.0.0.1:9443. Works with the embedded outpost only.
+  interface:
+    name: Interface
+    description: The admin UI inside Home Assistant.
+    fields:
+      support_footer:
+        name: Show app footer
+        description: Adds a line with the app version and support links below the footer of the admin UI. On by default.
+  advanced:
+    name: Advanced
+    description: For everything the other options do not cover.
+    fields:
+      extra_environment:
+        name: Additional environment variables
+        description: "Any number of NPMplus environment variables, one NAME=value per entry (for example NGINX_LOAD_NJS_MODULE=true). They are applied last and override the options above. See the NPMplus compose.yaml for the available variables."
+  migration:
+    name: Migration
+    description: Takes over the data of an existing Nginx Proxy Manager installation once. See the migration guide in the documentation.
+    fields:
+      source:
+        name: Import from
+        description: "community_app reads the data of the Home Assistant Community App for Nginx Proxy Manager directly (stop it first). import_folder reads data you copied to the import folder of this app's configuration. Nothing is imported once NPMplus has data of its own."
+network:
+  80/tcp: HTTP, also used for ACME HTTP-01 challenges
+  443/tcp: HTTPS (HTTP/1.1 and HTTP/2)
+  443/udp: HTTP/3 (QUIC)
+  81/tcp: Admin UI over HTTPS with a self-signed certificate (the ingress panel works without it)

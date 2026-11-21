@@ -1,0 +1,71 @@
+# Maps every app option to the NPMplus environment variable it controls.
+#
+# Format: <option path in config.yaml>=<environment variable>
+# Options left empty are not exported, so NPMplus keeps its own default.
+# Names follow the commented environment section of NPMplus' compose.yaml.
+
+# --- Certificates (ACME) -----------------------------------------------------
+certificates.email=ACME_EMAIL
+certificates.server=ACME_SERVER
+certificates.profile=ACME_PROFILE
+certificates.eab_kid=ACME_EAB_KID
+certificates.eab_hmac_key=ACME_EAB_HMAC_KEY
+certificates.key_type=ACME_KEY_TYPE
+certificates.key_size=ACME_KEY_SIZE
+certificates.must_staple=ACME_MUST_STAPLE
+certificates.ocsp_stapling=ACME_OCSP_STAPLING
+certificates.custom_ocsp_stapling=CUSTOM_OCSP_STAPLING
+certificates.verify_acme_tls=ACME_SERVER_TLS_VERIFY
+certificates.renew_interval_hours=CERTBOT_RUN_INTERVAL
+certificates.default_certificate_id=DEFAULT_CERT_ID
+
+# --- Network -----------------------------------------------------------------
+network.disable_ipv6=DISABLE_IPV6
+network.disable_http=DISABLE_HTTP
+network.disable_http3=DISABLE_H3_QUIC
+network.trust_cloudflare=TRUST_CLOUDFLARE
+network.proxy_protocol=LISTEN_PROXY_PROTOCOL
+network.proxy_protocol_http=LISTEN_PROXY_PROTOCOL_HTTP
+network.proxy_protocol_https=LISTEN_PROXY_PROTOCOL_HTTPS
+
+# --- nginx -------------------------------------------------------------------
+nginx.worker_processes=NGINX_WORKER_PROCESSES
+nginx.worker_connections=NGINX_WORKER_CONNECTIONS
+nginx.force_x25519mlkem768=NGINX_FORCE_X25519MLKEM768
+nginx.disable_tls12=NGINX_DISABLE_TLS12
+nginx.trust_secp_curves=NGINX_TRUST_SECPR1
+nginx.trust_rsa_pkcs1=NGINX_TRUST_RSA_PKCS1
+nginx.log_not_found=NGINX_LOG_NOT_FOUND
+nginx.load_njs_module=NGINX_LOAD_NJS_MODULE
+nginx.load_ldap_module=NGINX_LOAD_LDAP_MODULE
+nginx.load_ntlm_module=NGINX_LOAD_NTLM_MODULE
+nginx.load_vhost_traffic_status_module=NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE
+
+# --- Logging and statistics --------------------------------------------------
+logging.rotate_logs=LOGROTATE
+logging.rotations=LOGROTATIONS
+logging.goaccess=GOA
+logging.goaccess_arguments=GOACLA
+
+# --- Accounts and sessions ---------------------------------------------------
+account.initial_admin_email=INITIAL_ADMIN_EMAIL
+account.initial_admin_password=INITIAL_ADMIN_PASSWORD
+account.initial_default_page=INITIAL_DEFAULT_PAGE
+account.disable_gravatar=DISABLE_GRAVATAR
+account.cookie_secret=COOKIE_SECRET
+
+# --- OpenID Connect ----------------------------------------------------------
+oidc.redirect_domain=OIDC_REDIRECT_DOMAIN
+oidc.issuer_url=OIDC_ISSUER_URL
+oidc.client_id=OIDC_CLIENT_ID
+oidc.client_secret=OIDC_CLIENT_SECRET
+oidc.require_verified_email=OIDC_REQUIRE_VERIFIED_EMAIL
+oidc.disable_password_login=OIDC_DISABLE_PASSWORD
+
+# --- Forward authentication providers ----------------------------------------
+auth_request.anubis_upstream=AUTH_REQUEST_ANUBIS_UPSTREAM
+auth_request.tinyauth_upstream=AUTH_REQUEST_TINYAUTH_UPSTREAM
+auth_request.oauth2proxy_upstream=AUTH_REQUEST_OAUTH2PROXY_UPSTREAM
+auth_request.voidauth_upstream=AUTH_REQUEST_VOIDAUTH_UPSTREAM
+auth_request.authelia_upstream=AUTH_REQUEST_AUTHELIA_UPSTREAM
+auth_request.authentik_upstream=AUTH_REQUEST_AUTHENTIK_UPSTREAM

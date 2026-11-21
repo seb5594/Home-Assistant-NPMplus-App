@@ -1,0 +1,112 @@
+name: NPMplus
+version: "2026.11.21"
+slug: npmplus
+description: Reverse proxy with free TLS certificates, HTTP/3 and a modern admin UI. A fork of Nginx Proxy Manager.
+url: https://github.com/seb5594/Home-Assistant-NPMplus-App
+homeassistant: 2026.7.0
+arch:
+  - aarch64
+  - amd64
+startup: services
+boot: auto
+init: true
+ingress: true
+ingress_port: 5594
+panel_icon: mdi:router-network
+panel_title: NPMplus
+panel_admin: true
+watchdog: http://[HOST]:[PORT:5594]/healthz
+ports:
+  80/tcp: 80
+  443/tcp: 443
+  443/udp: 443
+  81/tcp: null
+ports_description:
+  80/tcp: HTTP, also used for ACME HTTP-01 challenges
+  443/tcp: HTTPS (HTTP/1.1 and HTTP/2)
+  443/udp: HTTP/3 (QUIC)
+  81/tcp: Admin UI over HTTPS with a self-signed certificate (the ingress panel works without it)
+map:
+  - app_config:rw
+  - all_app_configs:ro
+backup_exclude:
+  - "*/nginx/logs"
+options:
+  certificates: {}
+  network: {}
+  nginx: {}
+  logging: {}
+  account: {}
+  oidc: {}
+  auth_request: {}
+  interface: {}
+  advanced: {}
+  migration:
+    source: none
+schema:
+  certificates:
+    email: email?
+    server: url?
+    profile: str?
+    eab_kid: str?
+    eab_hmac_key: password?
+    key_type: list(ecdsa|rsa)?
+    key_size: list(secp256r1|secp384r1|secp521r1|2048|3072|4096)?
+    must_staple: bool?
+    ocsp_stapling: bool?
+    custom_ocsp_stapling: bool?
+    verify_acme_tls: bool?
+    renew_interval_hours: int(1,)?
+    default_certificate_id: int(1,)?
+  network:
+    disable_ipv6: bool?
+    disable_http: bool?
+    disable_http3: bool?
+    trust_cloudflare: bool?
+    proxy_protocol: bool?
+    proxy_protocol_http: bool?
+    proxy_protocol_https: bool?
+  nginx:
+    worker_processes: match(^(auto|[1-9][0-9]*)$)?
+    worker_connections: int(1,)?
+    force_x25519mlkem768: bool?
+    disable_tls12: bool?
+    trust_secp_curves: bool?
+    trust_rsa_pkcs1: bool?
+    log_not_found: bool?
+    load_njs_module: bool?
+    load_ldap_module: bool?
+    load_ntlm_module: bool?
+    load_vhost_traffic_status_module: bool?
+  logging:
+    rotate_logs: bool?
+    rotations: int(1,)?
+    goaccess: bool?
+    goaccess_arguments: str?
+  account:
+    initial_admin_email: email?
+    initial_admin_password: password?
+    initial_default_page: list(404|444|redirect|congratulations|html)?
+    disable_gravatar: bool?
+    cookie_secret: password?
+  oidc:
+    redirect_domain: str?
+    issuer_url: url?
+    client_id: str?
+    client_secret: password?
+    require_verified_email: bool?
+    disable_password_login: bool?
+  auth_request:
+    anubis_upstream: url?
+    tinyauth_upstream: url?
+    oauth2proxy_upstream: url?
+    voidauth_upstream: url?
+    authelia_upstream: url?
+    authentik_upstream: url?
+  interface:
+    support_footer: bool?
+  advanced:
+    extra_environment:
+      - "match(^[A-Za-z_][A-Za-z0-9_]*=.*$)?"
+  migration:
+    source: list(none|community_app|import_folder)

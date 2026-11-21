@@ -4,13 +4,15 @@
 #
 # Sources
 #   community_app  The Home Assistant Community App "Nginx Proxy Manager". Its data sits in the app
-#                  config folder, which this app can read through the all_app_configs mapping.
+#                  config folder, which this app can read through the all_addon_configs mapping.
 #   import_folder  Any other installation. Copy its data folder (and the letsencrypt folder) into
 #                  <app config>/import first; see docs/MIGRATION.md.
 #
 # The source is only read, never changed. NPMplus data that already exists is never overwritten.
 
-APP_CONFIGS_DIR="${APP_CONFIGS_DIR:-/app_configs}"
+# The Supervisor mounts the configuration folders of all apps at /app_configs (since 2026.07) or,
+# for older versions and the legacy map type, at /addon_configs. Both are searched.
+APP_CONFIGS_DIRS="${APP_CONFIGS_DIRS:-/app_configs /addon_configs}"
 IMPORT_DIR="${IMPORT_DIR:-${CONFIG_DIR}/${IMPORT_DIRECTORY}}"
 MIGRATIONS_DIR="${MIGRATIONS_DIR:-/app/migrations}"
 IMPORT_DATABASE="${IMPORT_DATABASE:-/usr/local/lib/npmplus-app/import_database.py}"
@@ -34,15 +36,16 @@ readonly NPMPLUS_CERTBOT_DIR=/data/tls/certbot
 # Prints the folder to import from, or stops the app with a hint on what is missing.
 migration::locate_source() {
   local mode=$1 folder
-  local -a candidates=()
+  local -a candidates=() roots=()
 
   case $mode in
     community_app)
+      read -r -a roots <<< "$APP_CONFIGS_DIRS"
       while IFS= read -r folder; do
         [[ -f ${folder}/database.sqlite ]] && candidates+=("$folder")
-      done < <(find "$APP_CONFIGS_DIR" -mindepth 1 -maxdepth 1 -name "$COMMUNITY_APP_FOLDER_PATTERN" 2> /dev/null | sort)
+      done < <(find "${roots[@]}" -mindepth 1 -maxdepth 1 -name "$COMMUNITY_APP_FOLDER_PATTERN" 2> /dev/null | sort)
       ((${#candidates[@]} > 0)) \
-        || log::fatal "No data of the Nginx Proxy Manager app found below ${APP_CONFIGS_DIR}. Is it installed? Otherwise use migration.source: import_folder."
+        || log::fatal "No data of the Nginx Proxy Manager app found below ${APP_CONFIGS_DIRS}. Is it installed? Otherwise use migration.source: import_folder."
       ((${#candidates[@]} == 1)) \
         || log::fatal "Found several Nginx Proxy Manager data folders (${candidates[*]}). Use migration.source: import_folder for the one you want."
       printf '%s\n' "${candidates[0]}"

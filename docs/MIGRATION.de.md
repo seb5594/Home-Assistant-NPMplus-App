@@ -44,7 +44,7 @@ direkt lesen, es muss also nichts kopiert werden.
 4. **Starte** NPMplus und sieh ins Protokoll. Dort steht:
 
    ```
-   [INFO] Importing Nginx Proxy Manager data from /app_configs/a0d7b954_nginxproxymanager
+   [INFO] Importing Nginx Proxy Manager data from /addon_configs/a0d7b954_nginxproxymanager
    [INFO] Imported access
    [INFO] Imported letsencrypt
    ...

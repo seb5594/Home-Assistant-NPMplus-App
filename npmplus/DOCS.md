@@ -90,7 +90,7 @@ in short:
 The old data is only read, never changed. Nothing is imported once NPMplus has data of its own.
 
 > **Note on access:** to read the Community App's data, this app has read-only access to the
-> configuration folders of all apps (`all_app_configs`). It touches them only while a migration is
+> configuration folders of all apps (the `all_addon_configs` mapping). It touches them only while a migration is
 > configured.
 
 ## Home Assistant behind NPMplus

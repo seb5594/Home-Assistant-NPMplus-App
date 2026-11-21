@@ -196,7 +196,7 @@ configuration:
     fields:
       source:
         name: Importieren aus
-        description: "community_app liest die Daten der Home-Assistant-Community-App für Nginx Proxy Manager direkt (vorher stoppen). import_folder liest Daten, die du in den Import-Ordner der Konfiguration dieser App kopiert hast. Hat NPMplus bereits eigene Daten, wird nichts importiert."
+        description: "community_app liest die Daten der Home-Assistant-Community-App für Nginx Proxy Manager direkt (vorher stoppen), community_app_edge dasselbe für deren Edge-Version. import_folder liest Daten, die du in den Import-Ordner der Konfiguration dieser App kopiert hast. Hat NPMplus bereits eigene Daten, wird nichts importiert."
 network:
   80/tcp: HTTP, auch für ACME-HTTP-01-Challenges
   443/tcp: HTTPS (HTTP/1.1 und HTTP/2)

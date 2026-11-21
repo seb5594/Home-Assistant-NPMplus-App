@@ -201,6 +201,45 @@ migration_finds_the_legacy_mount_point() {
   assert_file "${DATA_DIR}/access/1" "its files are imported as well"
 }
 
+migration_imports_the_edge_variant() {
+  make_community_source "${SANDBOX}/app_configs/40817795_nginxproxymanager"
+  write_options '{"migration": {"source": "community_app_edge"}}'
+  storage::prepare
+  migration::run > /dev/null
+  assert_file "$NPMPLUS_DATABASE" "the database of the edge variant is imported"
+  assert_file "${DATA_DIR}/access/1" "its files are imported as well"
+}
+
+migration_uses_the_variant_you_choose() {
+  # Both variants installed side by side: each source reads its own data and nothing else.
+  local stable="${SANDBOX}/app_configs/a0d7b954_nginxproxymanager" edge="${SANDBOX}/app_configs/40817795_nginxproxymanager"
+  make_community_source "$stable"
+  make_community_source "$edge"
+  python3 -c "import sqlite3,sys;c=sqlite3.connect(sys.argv[1]);c.execute(\"INSERT INTO user (email) VALUES ('only-in-edge@example.org')\");c.commit()" "${edge}/database.sqlite"
+
+  local users
+  write_options '{"migration": {"source": "community_app_edge"}}'
+  migration::run > /dev/null
+  users=$(python3 -c "import sqlite3,sys;print(sqlite3.connect(sys.argv[1]).execute('SELECT count(*) FROM user').fetchone()[0])" "$NPMPLUS_DATABASE")
+  assert_equals 2 "$users" "the edge source reads the edge data"
+
+  rm -rf "${DATA_DIR:?}"/*
+  write_options '{"migration": {"source": "community_app"}}'
+  migration::run > /dev/null
+  users=$(python3 -c "import sqlite3,sys;print(sqlite3.connect(sys.argv[1]).execute('SELECT count(*) FROM user').fetchone()[0])" "$NPMPLUS_DATABASE")
+  assert_equals 1 "$users" "the stable source reads the stable data"
+}
+
+migration_names_the_variant_it_found_instead() {
+  local output status=0
+  make_community_source "${SANDBOX}/app_configs/40817795_nginxproxymanager"
+  write_options '{"migration": {"source": "community_app"}}'
+  output=$( (migration::run) 2>&1) || status=$?
+  assert_equals 1 "$status" "the start is aborted"
+  assert_contains "$output" "a0d7b954_nginxproxymanager" "the expected folder is named"
+  assert_contains "$output" "Found instead: 40817795_nginxproxymanager" "the folder that exists is named"
+}
+
 migration_skips_existing_data() {
   make_community_source "${SANDBOX}/app_configs/a0d7b954_nginxproxymanager"
   mkdir -p "${DATA_DIR}/npmplus"
@@ -376,6 +415,9 @@ scenario storage_links_user_folders storage_links_user_folders
 scenario migration_is_off_by_default migration_is_off_by_default
 scenario migration_imports_the_community_app migration_imports_the_community_app
 scenario migration_finds_the_legacy_mount_point migration_finds_the_legacy_mount_point
+scenario migration_imports_the_edge_variant migration_imports_the_edge_variant
+scenario migration_uses_the_variant_you_choose migration_uses_the_variant_you_choose
+scenario migration_names_the_variant_it_found_instead migration_names_the_variant_it_found_instead
 scenario migration_skips_existing_data migration_skips_existing_data
 scenario migration_refuses_databases_from_newer_releases migration_refuses_databases_from_newer_releases
 scenario migration_reports_a_missing_source migration_reports_a_missing_source

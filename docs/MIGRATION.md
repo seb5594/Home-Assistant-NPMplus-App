@@ -25,7 +25,7 @@ Which app do you have?
 
 | Your current app | Guide |
 | --- | --- |
-| **Nginx Proxy Manager** (Home Assistant Community Apps) | [A: automatic](#a-nginx-proxy-manager-community-app) |
+| **Nginx Proxy Manager** (Home Assistant Community Apps, stable or edge) | [A: automatic](#a-nginx-proxy-manager-community-app) |
 | **Nginx Proxy Manager + Static Web Server** (alexbelgium) | [B: from the running app](#b-alexbelgium-nginx-proxy-manager--static-web-server) |
 | Docker, another app, another machine | [C: manual copy](#c-anything-else) |
 
@@ -34,8 +34,14 @@ Which app do you have?
 The Community App keeps its data in its configuration folder. NPMplus can read that folder
 directly, so there is nothing to copy.
 
+The Community Apps have a stable and an edge repository, and the app exists in both. Choose
+`community_app` for the stable one and `community_app_edge` for the edge one; each reads only its own
+data, so both can stay installed. The edge version follows the newest Nginx Proxy Manager, so its
+database may be newer than NPMplus supports (see [Before you start](#before-you-start)).
+
 1. Install **NPMplus** but do not start it yet.
-2. Open its **Configuration**, expand **Migration** and set **Import from** to `community_app`.
+2. Open its **Configuration**, expand **Migration** and set **Import from** to `community_app`
+   (`community_app_edge` for the edge version).
    Set anything else you want while you are here (for example the ACME email address).
 3. **Stop** the Nginx Proxy Manager app and turn off *Start on boot*.
 4. **Start** NPMplus and read its log. You should see:
@@ -142,8 +148,7 @@ The upstream notes on the migration are in the
 
 | Message in the log | Meaning |
 | --- | --- |
-| `No data of the Nginx Proxy Manager app found` | The Community App is not installed, or its data is not there. Use guide C. |
-| `Found several Nginx Proxy Manager data folders` | More than one copy exists. Use guide C for the one you want. |
+| `No data of the Nginx Proxy Manager app found` | The chosen variant is not installed, or its data is not there. The message names a folder of the other variant if that exists; otherwise use guide C. |
 | `No database.sqlite in .../import` | The import folder is empty or has the data one level too deep. |
 | `written by a newer Nginx Proxy Manager` | See [Before you start](#before-you-start). Nothing was changed. |
 | `NPMplus already has data, so the import ... is skipped` | The import is done or not needed; set **Import from** to `none`. |

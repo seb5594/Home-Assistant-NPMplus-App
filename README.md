@@ -7,7 +7,7 @@
 
 <p align="center">
   <a href="https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fseb5594%2FHome-Assistant-Apps"><img src="https://img.shields.io/static/v1?label=Home%20Assistant&amp;message=Add%20app%20repository&amp;color=18BCF2&amp;logo=homeassistant&amp;logoColor=white&amp;style=for-the-badge" alt="Home Assistant" height="28"></a><br>
-  <a href="https://github.com/seb5594/Home-Assistant-NPMplus-App/releases"><img src="https://img.shields.io/static/v1?label=app%20version&amp;message=2026.11.21.2&amp;color=1877A5&amp;style=for-the-badge" alt="app version" height="28"></a>
+  <a href="https://github.com/seb5594/Home-Assistant-NPMplus-App/releases"><img src="https://img.shields.io/static/v1?label=app%20version&amp;message=2026.11.21.3&amp;color=1877A5&amp;style=for-the-badge" alt="app version" height="28"></a>
   <img src="https://img.shields.io/static/v1?label=image%20pulls&amp;message=4&amp;color=1877A5&amp;style=for-the-badge" alt="image pulls" height="28"><br>
   <img src="https://img.shields.io/static/v1?label=stage&amp;message=stable&amp;color=2F855A&amp;style=flat" alt="stage" height="20">
   <img src="https://img.shields.io/static/v1?label=ingress&amp;message=enabled&amp;color=7C3AED&amp;style=flat" alt="ingress" height="20">
@@ -62,7 +62,7 @@ start.
 
 | You use | How |
 | --- | --- |
-| **Nginx Proxy Manager** (Community Apps) | Set *Migration → Import from* to `community_app`, stop the old app, start NPMplus. The old data is read directly and never changed. |
+| **Nginx Proxy Manager** (Community Apps, stable or edge) | Set *Migration → Import from* to `community_app` (`community_app_edge` for edge), stop the old app, start NPMplus. The old data is read directly and never changed. |
 | **Nginx Proxy Manager + Static Web Server** (alexbelgium) | Its data lives in private app storage, so it is copied out once. See [guide B](docs/MIGRATION.md#b-alexbelgium-nginx-proxy-manager--static-web-server). |
 | Docker or anything else | Copy the data into the `import` folder, see [guide C](docs/MIGRATION.md#c-anything-else). |
 

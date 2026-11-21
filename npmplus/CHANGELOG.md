@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.11.21.5
+
+* The app is marked as experimental. It is new, and the ingress integration and the import of other Nginx Proxy Manager installations have only been exercised with test data so far.
+
 ## 2026.11.21.4
 
 * The footer below the admin interface is back, as an option: *Interface → Show app footer*, on by default. It shows the app version, "Made with ❤️ in Germany 🇩🇪" and the links "Support my work ☕🍺" and PayPal.

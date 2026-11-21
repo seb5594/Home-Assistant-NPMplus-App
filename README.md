@@ -90,6 +90,9 @@ self-signed certificate. Port 81 does not need to be published for this.
   [`migration.sh`](npmplus/rootfs/usr/local/lib/npmplus-app/migration.sh).
 - **Architectures.** amd64 and aarch64, the platforms NPMplus itself is built for. armv7, armhf and
   i386 (the legacy platforms of the base image) are not offered: NPMplus ships no binaries for them.
+- **A fast sidebar entry.** The app's nginx serves the admin interface files directly and hands only the
+  API to the NPMplus backend, over its unix socket. The files are compressed once when the image is
+  built, so a request costs next to nothing.
 - **Two small changes to the admin interface** are made when the image is built: its router learns
   about the ingress path and it starts in dark mode instead of following the browser. The build
   fails if an upstream update moves the code these changes rely on, so they can never be skipped

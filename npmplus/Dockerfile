@@ -25,11 +25,13 @@ COPY --from=npmplus /COPYING /LICENSE.MIT /
 COPY rootfs/ /
 COPY run.sh entrypoint.sh /
 
-# Adjust the admin UI for ingress and a dark default (see patch-frontend.sh).
+# Adjust the admin UI for ingress and a dark default (patch-frontend.sh), then compress its files
+# once at the highest level (precompress-frontend.sh).
 RUN chmod a+x /run.sh /entrypoint.sh \
-    && /usr/local/lib/npmplus-app/patch-frontend.sh
+    && /usr/local/lib/npmplus-app/patch-frontend.sh \
+    && /usr/local/lib/npmplus-app/precompress-frontend.sh
 
-ARG BUILD_VERSION=2026.11.21.1
+ARG BUILD_VERSION=2026.11.21.2
 ARG BUILD_ARCH=amd64
 ENV NODE_ENV=production \
     NODE_OPTIONS=--use-openssl-ca

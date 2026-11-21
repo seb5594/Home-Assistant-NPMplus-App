@@ -196,7 +196,7 @@ configuration:
     fields:
       source:
         name: Import from
-        description: "community_app reads the data of the Home Assistant Community App for Nginx Proxy Manager directly (stop it first). import_folder reads data you copied to the import folder of this app's configuration. Nothing is imported once NPMplus has data of its own."
+        description: "community_app reads the data of the Home Assistant Community App for Nginx Proxy Manager directly (stop it first), community_app_edge does the same for its edge version. import_folder reads data you copied to the import folder of this app's configuration. Nothing is imported once NPMplus has data of its own."
 network:
   80/tcp: HTTP, also used for ACME HTTP-01 challenges
   443/tcp: HTTPS (HTTP/1.1 and HTTP/2)

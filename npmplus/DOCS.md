@@ -83,8 +83,8 @@ snippets. The step by step guide is in the
 in short:
 
 1. Make a backup. A migration back to Nginx Proxy Manager is not possible.
-2. Set **Migration → Import from** to `community_app` (the Home Assistant Community App) or
-   `import_folder` (anything else).
+2. Set **Migration → Import from** to `community_app` (the Home Assistant Community App),
+   `community_app_edge` (its edge version) or `import_folder` (anything else).
 3. Stop the old app and start NPMplus.
 
 The old data is only read, never changed. Nothing is imported once NPMplus has data of its own.

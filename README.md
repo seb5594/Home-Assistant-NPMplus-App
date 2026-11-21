@@ -62,7 +62,7 @@ start.
 
 | You use | How |
 | --- | --- |
-| **Nginx Proxy Manager** (Community Apps) | Set *Migration → Import from* to `community_app`, stop the old app, start NPMplus. The old data is read directly and never changed. |
+| **Nginx Proxy Manager** (Community Apps, stable or edge) | Set *Migration → Import from* to `community_app` (`community_app_edge` for edge), stop the old app, start NPMplus. The old data is read directly and never changed. |
 | **Nginx Proxy Manager + Static Web Server** (alexbelgium) | Its data lives in private app storage, so it is copied out once. See [guide B](docs/MIGRATION.md#b-alexbelgium-nginx-proxy-manager--static-web-server). |
 | Docker or anything else | Copy the data into the `import` folder, see [guide C](docs/MIGRATION.md#c-anything-else). |
 

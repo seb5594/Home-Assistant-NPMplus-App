@@ -27,7 +27,7 @@ Welche App nutzt du?
 
 | Deine bisherige App | Anleitung |
 | --- | --- |
-| **Nginx Proxy Manager** (Home Assistant Community Apps) | [A: automatisch](#a-nginx-proxy-manager-community-app) |
+| **Nginx Proxy Manager** (Home Assistant Community Apps, stable oder Edge) | [A: automatisch](#a-nginx-proxy-manager-community-app) |
 | **Nginx Proxy Manager + Static Web Server** (alexbelgium) | [B: aus der laufenden App](#b-alexbelgium-nginx-proxy-manager--static-web-server) |
 | Docker, andere App, anderer Rechner | [C: manuell kopieren](#c-alles-andere) |
 
@@ -36,9 +36,15 @@ Welche App nutzt du?
 Die Community-App legt ihre Daten in ihrem Konfigurationsordner ab. NPMplus kann diesen Ordner
 direkt lesen, es muss also nichts kopiert werden.
 
+Die Community Apps haben ein Stable- und ein Edge-Repository, und die App gibt es in beiden. Wähle
+`community_app` für die stabile und `community_app_edge` für die Edge-Variante; jede liest nur ihre
+eigenen Daten, beide können also installiert bleiben. Die Edge-Version folgt dem neuesten Nginx Proxy
+Manager, ihre Datenbank kann daher neuer sein, als NPMplus unterstützt (siehe
+[Bevor es losgeht](#bevor-es-losgeht)).
+
 1. Installiere **NPMplus**, starte es aber noch nicht.
 2. Öffne die **Konfiguration**, klappe **Migration** auf und setze **Importieren aus** auf
-   `community_app`. Stelle gleich alles ein, was du sonst noch willst (zum Beispiel die
+   `community_app` (`community_app_edge` für die Edge-Version). Stelle gleich alles ein, was du sonst noch willst (zum Beispiel die
    ACME-E-Mail-Adresse).
 3. **Stoppe** die App Nginx Proxy Manager und schalte *Beim Booten starten* aus.
 4. **Starte** NPMplus und sieh ins Protokoll. Dort steht:
@@ -151,8 +157,7 @@ Die Hinweise von NPMplus zur Migration stehen im
 
 | Meldung im Protokoll | Bedeutung |
 | --- | --- |
-| `No data of the Nginx Proxy Manager app found` | Die Community-App ist nicht installiert oder ihre Daten fehlen. Nimm Anleitung C. |
-| `Found several Nginx Proxy Manager data folders` | Es gibt mehrere Kopien. Nimm Anleitung C für die gewünschte. |
+| `No data of the Nginx Proxy Manager app found` | Die gewählte Variante ist nicht installiert oder ihre Daten fehlen. Existiert die andere Variante, nennt die Meldung deren Ordner; sonst nimm Anleitung C. |
 | `No database.sqlite in .../import` | Der Import-Ordner ist leer oder die Daten liegen eine Ebene zu tief. |
 | `written by a newer Nginx Proxy Manager` | Siehe [Bevor es losgeht](#bevor-es-losgeht). Es wurde nichts verändert. |
 | `NPMplus already has data, so the import ... is skipped` | Der Import ist erledigt oder nicht nötig; stelle **Importieren aus** auf `none`. |

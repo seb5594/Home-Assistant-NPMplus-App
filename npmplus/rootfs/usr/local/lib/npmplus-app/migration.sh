@@ -3,10 +3,12 @@
 # access lists, custom nginx snippets), so nobody has to configure everything again.
 #
 # Sources
-#   community_app  The Home Assistant Community App "Nginx Proxy Manager". Its data sits in the app
-#                  config folder, which this app can read through the all_addon_configs mapping.
-#   import_folder  Any other installation. Copy its data folder (and the letsencrypt folder) into
-#                  <app config>/import first; see docs/MIGRATION.md.
+#   community_app       The Home Assistant Community App "Nginx Proxy Manager". Its data sits in the
+#                       app config folder, which this app can read through the all_addon_configs
+#                       mapping.
+#   community_app_edge  The same app from the edge repository of the Community Apps.
+#   import_folder       Any other installation. Copy its data folder (and the letsencrypt folder)
+#                       into <app config>/import first; see docs/MIGRATION.md.
 #
 # The source is only read, never changed. NPMplus data that already exists is never overwritten.
 
@@ -18,8 +20,13 @@ MIGRATIONS_DIR="${MIGRATIONS_DIR:-/app/migrations}"
 IMPORT_DATABASE="${IMPORT_DATABASE:-/usr/local/lib/npmplus-app/import_database.py}"
 NPMPLUS_DATABASE="${DATA_DIR:-/data}/npmplus/database.sqlite"
 
-# Slug of the Community App; the part before it is a hash of the repository it was installed from.
-readonly COMMUNITY_APP_FOLDER_PATTERN='*_nginxproxymanager'
+# The Supervisor names the folder of an app <hash of the repository URL>_<slug>. The Community App
+# exists in a stable and an edge repository, with the same slug; the two can be installed side by side.
+readonly COMMUNITY_APP_SLUG=nginxproxymanager
+declare -rA COMMUNITY_APP_REPOSITORY_HASHES=(
+  [community_app]=a0d7b954       # https://github.com/hassio-addons/repository
+  [community_app_edge]=40817795  # https://github.com/hassio-addons/repository-edge
+)
 
 # Where Nginx Proxy Manager keeps things (left) and where NPMplus expects them (right, below /data).
 readonly IMPORT_DIRECTORIES=(
@@ -33,22 +40,35 @@ readonly IMPORT_DIRECTORIES=(
 # Paths certbot recorded in its renewal files while it ran inside Nginx Proxy Manager.
 readonly NPMPLUS_CERTBOT_DIR=/data/tls/certbot
 
+# Prints the folder of a Community App variant below the configuration folders of all apps, or stops
+# the app with a hint on what is there instead.
+migration::find_community_app() {
+  local mode=$1 root folder
+  local name="${COMMUNITY_APP_REPOSITORY_HASHES[$mode]}_${COMMUNITY_APP_SLUG}"
+  local -a roots=() present=()
+
+  read -r -a roots <<< "$APP_CONFIGS_DIRS"
+  for root in "${roots[@]}"; do
+    if [[ -f ${root}/${name}/database.sqlite ]]; then
+      printf '%s\n' "${root}/${name}"
+      return 0
+    fi
+  done
+
+  while IFS= read -r folder; do
+    present+=("${folder##*/}")
+  done < <(find "${roots[@]}" -mindepth 1 -maxdepth 1 -name "*_${COMMUNITY_APP_SLUG}" 2> /dev/null | sort -u)
+  log::fatal "No data of the Nginx Proxy Manager app found (${name} below ${APP_CONFIGS_DIRS})." \
+    "Is that variant installed? ${present[*]:+Found instead: ${present[*]}. }Otherwise use migration.source: import_folder."
+}
+
 # Prints the folder to import from, or stops the app with a hint on what is missing.
 migration::locate_source() {
-  local mode=$1 folder
-  local -a candidates=() roots=()
+  local mode=$1
 
   case $mode in
-    community_app)
-      read -r -a roots <<< "$APP_CONFIGS_DIRS"
-      while IFS= read -r folder; do
-        [[ -f ${folder}/database.sqlite ]] && candidates+=("$folder")
-      done < <(find "${roots[@]}" -mindepth 1 -maxdepth 1 -name "$COMMUNITY_APP_FOLDER_PATTERN" 2> /dev/null | sort)
-      ((${#candidates[@]} > 0)) \
-        || log::fatal "No data of the Nginx Proxy Manager app found below ${APP_CONFIGS_DIRS}. Is it installed? Otherwise use migration.source: import_folder."
-      ((${#candidates[@]} == 1)) \
-        || log::fatal "Found several Nginx Proxy Manager data folders (${candidates[*]}). Use migration.source: import_folder for the one you want."
-      printf '%s\n' "${candidates[0]}"
+    community_app | community_app_edge)
+      migration::find_community_app "$mode"
       ;;
     import_folder)
       [[ -f ${IMPORT_DIR}/database.sqlite ]] \

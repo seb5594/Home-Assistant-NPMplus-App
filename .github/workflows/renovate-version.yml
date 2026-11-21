@@ -1,0 +1,34 @@
+name: Raise the version after a Renovate update
+
+# A new NPMplus release only reaches users when the app version changes. Renovate updates the pin in
+# the Dockerfile; this job raises the calendar version, the Dockerfile argument and the changelog in
+# the same pull request, using the engine's bump action.
+
+on:
+  pull_request:
+    branches: [dev, main]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  bump:
+    # Secrets are not available to forks, and only Renovate pull requests need a bump.
+    if: github.actor == 'renovate[bot]' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          token: ${{ github.token }}
+      - uses: actions/checkout@v7
+        with:
+          repository: seb5594/hass-workflows
+          ref: main
+          token: ${{ secrets.ORCHESTRATION_PAT }}
+          path: .engine
+          persist-credentials: false
+      - uses: ./.engine/.actions/bump-upstream

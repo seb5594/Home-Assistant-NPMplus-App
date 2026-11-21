@@ -87,8 +87,10 @@ port uses a self-signed certificate.
   HTTP/3 needs no port mapping. It listens on 8080 for HTTP (so port 80 of the host stays free; the
   router forwards 80 to it) and on 443 for HTTPS and HTTP/3. Both can be changed under *Network* in the
   configuration. Proxy hosts therefore target `127.0.0.1:8123` for Home Assistant or the address of the
-  machine and the port of another app. Names of the Home Assistant network such as `homeassistant`
-  are not resolved on the host; hosts taken over from an app in that network need a new target.
+  machine and the port of another app. The host name of the machine (*Settings → System → Network*)
+  also resolves to `127.0.0.1`, so `hassos:8123` works too. Other names of the Home Assistant network
+  such as `homeassistant` are not resolved on the host; hosts taken over from an app in that network
+  need a new target.
 - **Port 5594.** The admin interface is also reachable over HTTPS at `https://<address of the machine>:5594`
   with a self-signed certificate. The sidebar entry uses the same port through the Supervisor's network
   and does not need it. *Network → Admin interface port* changes the port, *Admin interface on this machine

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.11.21.8
+
+* The host name of the machine (*Settings → System → Network*) and its `.local` variant resolve to `127.0.0.1` inside the app, so proxy hosts can target `hassos:8123`.
+
 ## 2026.11.21.7
 
 * The admin interface is reachable from the LAN again: `https://<address of the machine>:5594` (self-signed certificate). The ingress server shares the port, nginx tells them apart by the address a request was sent to. *Network → Admin interface port* changes the port (for example back to 81), *Admin interface on this machine only* closes it to the LAN.

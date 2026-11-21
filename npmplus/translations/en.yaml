@@ -183,13 +183,6 @@ configuration:
       authentik_upstream:
         name: authentik
         description: For example https://127.0.0.1:9443. Works with the embedded outpost only.
-  interface:
-    name: Interface
-    description: The admin UI inside Home Assistant.
-    fields:
-      support_footer:
-        name: Show app footer
-        description: Adds a line with the app version and support links below the footer of the admin UI. On by default.
   advanced:
     name: Advanced
     description: For everything the other options do not cover.

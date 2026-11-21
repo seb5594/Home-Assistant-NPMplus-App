@@ -1,5 +1,5 @@
 name: NPMplus
-version: "2026.11.21"
+version: "2026.11.21.1"
 slug: npmplus
 description: Reverse proxy with free TLS certificates, HTTP/3 and a modern admin UI. A fork of Nginx Proxy Manager.
 url: https://github.com/seb5594/Home-Assistant-NPMplus-App
@@ -40,7 +40,6 @@ options:
   account: {}
   oidc: {}
   auth_request: {}
-  interface: {}
   advanced: {}
   migration:
     source: none
@@ -104,8 +103,6 @@ schema:
     voidauth_upstream: url?
     authelia_upstream: url?
     authentik_upstream: url?
-  interface:
-    support_footer: bool?
   advanced:
     extra_environment:
       - "match(^[A-Za-z_][A-Za-z0-9_]*=.*$)?"

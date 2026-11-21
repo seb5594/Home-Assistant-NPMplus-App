@@ -10,25 +10,17 @@
  *     expired session lands on the UI again instead of on Home Assistant.
  *   - The router of the UI reads its location from window.__npmplusLocation (patched in at image
  *     build time), which shows the route without the ingress path.
- *   - The support footer is appended to the footer of the UI.
  *
  * Opened directly, without the ingress path, the script does nothing.
  */
 (function () {
   "use strict";
 
-  var script = document.currentScript;
   var ingress = /^\/api\/hassio_ingress\/[^/]+/.exec(location.pathname);
   if (!ingress) {
     return;
   }
   var prefix = ingress[0];
-
-  var SUPPORT = {
-    project: "https://github.com/seb5594/Home-Assistant-NPMplus-App",
-    paypal: "https://paypal.me/seb5594",
-    beer: "https://buymeacoffee.com/seb5594",
-  };
 
   // ---- URL handling -------------------------------------------------------------------------
 
@@ -119,53 +111,10 @@
     }
   }
 
-  // ---- Support footer -----------------------------------------------------------------------
-
-  function create(tag, className, text) {
-    var element = document.createElement(tag);
-    if (className) { element.className = className; }
-    if (text) { element.textContent = text; }
-    return element;
-  }
-
-  function link(label, url) {
-    var anchor = create("a", "", label);
-    anchor.href = url;
-    anchor.target = "_blank";
-    anchor.rel = "noopener noreferrer";
-    return anchor;
-  }
-
-  function buildFooter() {
-    var version = script.getAttribute("data-version");
-    var footer = create("div", "npmplus-app-footer");
-    footer.appendChild(link("NPMplus for Home Assistant " + version, SUPPORT.project));
-    footer.appendChild(create("span", "", "made by Sebastian Schmidt"));
-    footer.appendChild(link("PayPal", SUPPORT.paypal));
-    footer.appendChild(link("Buy me a beer", SUPPORT.beer));
-    return footer;
-  }
-
-  function addFooter() {
-    var host = document.querySelector("footer.footer");
-    if (host && !host.querySelector(".npmplus-app-footer")) {
-      host.appendChild(buildFooter());
-    }
-  }
-
   // ---- Start --------------------------------------------------------------------------------
 
-  var withFooter = script.getAttribute("data-support-footer") !== "false";
-
-  if (withFooter) {
-    var stylesheet = create("link");
-    stylesheet.rel = "stylesheet";
-    stylesheet.href = prefix + "/_npmplus_app/footer.css";
-    document.head.appendChild(stylesheet);
-  }
-
-  // The UI renders its pages after load and replaces them on every navigation, so footer and
-  // inline styles are checked whenever the document changes.
+  // The UI renders its pages after load and replaces them on every navigation, so inline styles
+  // are checked whenever the document changes.
   new MutationObserver(function (records) {
     records.forEach(function (record) {
       if (record.type === "attributes") {
@@ -179,8 +128,5 @@
         }
       });
     });
-    if (withFooter) {
-      addFooter();
-    }
   }).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ["style"] });
 }());

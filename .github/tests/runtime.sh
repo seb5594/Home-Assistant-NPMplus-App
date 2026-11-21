@@ -278,7 +278,6 @@ ingress_config_is_valid_nginx() {
   assert_file "$config" "config written"
   [[ $(cat "$config") != *@*@* ]] || fail "all placeholders are replaced"
   assert_contains "$(cat "$config")" "listen 5594 default_server;" "ingress port"
-  assert_contains "$(cat "$config")" 'data-support-footer="true"' "footer is on by default"
 
   mkdir -p "${SANDBOX}/nginx"
   cat > "${SANDBOX}/nginx/nginx.conf" <<EOF
@@ -293,11 +292,6 @@ http {
 EOF
   nginx -t -p "${SANDBOX}/nginx" -c "${SANDBOX}/nginx/nginx.conf" 2>&1 | grep -q "test is successful" \
     || fail "nginx rejects the ingress config"
-}
-
-ingress_footer_can_be_switched_off() {
-  write_options '{"interface": {"support_footer": false}}'
-  assert_contains "$(ingress::render_config)" 'data-support-footer="false"' "footer off"
 }
 
 ingress_template_typos_fail_loudly() {
@@ -350,7 +344,6 @@ scenario migration_reports_a_missing_source migration_reports_a_missing_source
 scenario migration_imports_a_manual_folder migration_imports_a_manual_folder
 scenario migration_reads_a_database_in_use migration_reads_a_database_in_use
 scenario ingress_config_is_valid_nginx ingress_config_is_valid_nginx
-scenario ingress_footer_can_be_switched_off ingress_footer_can_be_switched_off
 scenario ingress_template_typos_fail_loudly ingress_template_typos_fail_loudly
 scenario frontend_is_patched frontend_is_patched
 scenario ingress_shim_is_valid_javascript ingress_shim_is_valid_javascript

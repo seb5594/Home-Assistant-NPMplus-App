@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.11.21.4
+
+* The footer below the admin interface is back, as an option: *Interface → Show app footer*, on by default. It shows the app version, "Made with ❤️ in Germany 🇩🇪" and the links "Support my work ☕🍺" and PayPal.
+
 ## 2026.11.21.3
 
 * The data of the edge version of the Community App for Nginx Proxy Manager can be imported as well (Migration → Import from → community_app_edge). Each variant is looked up by its own repository, so both may be installed at the same time.

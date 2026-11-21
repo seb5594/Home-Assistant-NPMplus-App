@@ -8,7 +8,7 @@
 #   * accepts plain HTTP from the ingress gateway only,
 #   * serves the UI files itself and passes /api to the backend's unix socket, like the UI virtual
 #     host of NPMplus does, but without TLS and with headers that allow the frame,
-#   * serves a browser shim that teaches the UI about the ingress path.
+#   * serves a browser shim that teaches the UI about the ingress path and adds the app footer.
 
 INGRESS_PORT="${INGRESS_PORT:-5594}"
 INGRESS_SHARE_DIR="${INGRESS_SHARE_DIR:-/usr/local/share/npmplus-app/ingress}"
@@ -33,6 +33,15 @@ ingress::policy() {
   printf '%s' "$policy"
 }
 
+# The footer is on unless the user switched it off.
+ingress::support_footer_flag() {
+  if [[ $(options::get interface.support_footer) == false ]]; then
+    printf 'false'
+  else
+    printf 'true'
+  fi
+}
+
 # Renders the nginx template; every @NAME@ placeholder must be known, so typos fail loudly.
 ingress::render_config() {
   local template="${INGRESS_SHARE_DIR}/nginx.conf.tpl"
@@ -42,6 +51,8 @@ ingress::render_config() {
     -e "s|@INGRESS_PORT@|${INGRESS_PORT}|g" \
     -e "s|@SHARE_DIR@|${INGRESS_SHARE_DIR}|g" \
     -e "s|@UI_ROOT@|${UI_ROOT}|g" \
+    -e "s|@APP_VERSION@|${NPMPLUS_APP_VERSION:-dev}|g" \
+    -e "s|@SUPPORT_FOOTER@|$(ingress::support_footer_flag)|g" \
     -e "s|@CSP_ROOT@|$(ingress::policy /)|g" \
     -e "s|@CSP_API@|$(ingress::policy /api)|g" \
     -e "s|@CSP_DOCS@|$(ingress::policy /api/docs)|g" \

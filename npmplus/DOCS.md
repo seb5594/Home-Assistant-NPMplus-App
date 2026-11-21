@@ -21,7 +21,8 @@ Coming from Nginx Proxy Manager? Your hosts, users and certificates can be taken
 
 The sidebar entry shows the NPMplus interface through Home Assistant's ingress: it needs no
 extra port and is protected by your Home Assistant login. The interface starts in dark mode; the
-switch in its header changes that, and the choice is remembered.
+switch in its header changes that, and the choice is remembered. Below its footer the app adds a line
+with its version and support links; **Interface → Show app footer** turns it off.
 
 Optionally the interface is also reachable over HTTPS on port 81, with a self-signed certificate.
 That port is off by default; enable it under **Network** in the app configuration if you want

@@ -10,17 +10,32 @@
  *     expired session lands on the UI again instead of on Home Assistant.
  *   - The router of the UI reads its location from window.__npmplusLocation (patched in at image
  *     build time), which shows the route without the ingress path.
+ *   - A support footer is appended to the footer of the UI (switched off by the app option
+ *     interface.support_footer).
  *
  * Opened directly, without the ingress path, the script does nothing.
  */
 (function () {
   "use strict";
 
+  var script = document.currentScript;
   var ingress = /^\/api\/hassio_ingress\/[^/]+/.exec(location.pathname);
   if (!ingress) {
     return;
   }
   var prefix = ingress[0];
+
+  var SUPPORT = {
+    project: "https://github.com/seb5594/Home-Assistant-NPMplus-App",
+    paypal: "https://paypal.me/seb5594",
+    coffee: "https://buymeacoffee.com/seb5594",
+  };
+
+  // Emoji are written as escapes so the file reads the same in every encoding.
+  var HEART = "\u2764\uFE0F";
+  var GERMANY = "\uD83C\uDDE9\uD83C\uDDEA";
+  var COFFEE = "\u2615";
+  var BEER = "\uD83C\uDF7A";
 
   // ---- URL handling -------------------------------------------------------------------------
 
@@ -111,10 +126,52 @@
     }
   }
 
+  // ---- Support footer -----------------------------------------------------------------------
+
+  function create(tag, className, text) {
+    var element = document.createElement(tag);
+    if (className) { element.className = className; }
+    if (text) { element.textContent = text; }
+    return element;
+  }
+
+  function link(label, url) {
+    var anchor = create("a", "", label);
+    anchor.href = url;
+    anchor.target = "_blank";
+    anchor.rel = "noopener noreferrer";
+    return anchor;
+  }
+
+  function buildFooter() {
+    var footer = create("div", "npmplus-app-footer");
+    footer.appendChild(link("NPMplus for Home Assistant " + script.getAttribute("data-version"), SUPPORT.project));
+    footer.appendChild(create("span", "", "Made with " + HEART + " in Germany " + GERMANY));
+    footer.appendChild(link("Support my work " + COFFEE + BEER, SUPPORT.coffee));
+    footer.appendChild(link("PayPal", SUPPORT.paypal));
+    return footer;
+  }
+
+  function addFooter() {
+    var host = document.querySelector("footer.footer");
+    if (host && !host.querySelector(".npmplus-app-footer")) {
+      host.appendChild(buildFooter());
+    }
+  }
+
   // ---- Start --------------------------------------------------------------------------------
 
-  // The UI renders its pages after load and replaces them on every navigation, so inline styles
-  // are checked whenever the document changes.
+  var withFooter = script.getAttribute("data-support-footer") !== "false";
+
+  if (withFooter) {
+    var stylesheet = create("link");
+    stylesheet.rel = "stylesheet";
+    stylesheet.href = prefix + "/_npmplus_app/footer.css";
+    document.head.appendChild(stylesheet);
+  }
+
+  // The UI renders its pages after load and replaces them on every navigation, so the footer and
+  // inline styles are checked whenever the document changes.
   new MutationObserver(function (records) {
     records.forEach(function (record) {
       if (record.type === "attributes") {
@@ -128,5 +185,8 @@
         }
       });
     });
+    if (withFooter) {
+      addFooter();
+    }
   }).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ["style"] });
 }());

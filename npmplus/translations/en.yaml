@@ -46,6 +46,12 @@ configuration:
     name: Network
     description: Which protocols NPMplus serves and how it learns about clients.
     fields:
+      admin_port:
+        name: Admin interface port
+        description: Port of the admin interface over HTTPS (self-signed certificate), reachable as https://<address of this machine>:<port>. Default 5594. The sidebar entry works without it.
+      admin_localhost_only:
+        name: Admin interface on this machine only
+        description: Let the admin interface answer on the loopback interface only, so it cannot be reached from the LAN. The sidebar entry keeps working.
       http_port:
         name: HTTP port
         description: Port NPMplus listens on for HTTP. Default 8080, so port 80 of the host stays free; forward port 80 of your router to it. Certificates by HTTP-01 challenge work as long as the router maps 80 to this port.

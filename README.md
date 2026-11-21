@@ -79,8 +79,7 @@ The community integration **[ha-npmplus](https://github.com/metaathron/ha-npmplu
 it turns your proxy hosts, streams and certificates into devices and entities, so you can switch a
 host on or off or watch certificate expiry from Home Assistant. Use `127.0.0.1` (or the address of your
 Home Assistant machine), port `5594`, an NPMplus user, and leave the SSL verification off because that
-port uses a self-signed certificate. It only answers on the loopback interface, so Home Assistant has
-to run on the same host, which it does on Home Assistant OS.
+port uses a self-signed certificate.
 
 ## Good to know
 
@@ -90,9 +89,10 @@ to run on the same host, which it does on Home Assistant OS.
   configuration. Proxy hosts therefore target `127.0.0.1:8123` for Home Assistant or the address of the
   machine and the port of another app. Names of the Home Assistant network such as `homeassistant`
   are not resolved on the host; hosts taken over from an app in that network need a new target.
-- **Port 5594.** The sidebar entry reaches the admin interface on this port through the Supervisor's
-  network only. The same port also carries the admin interface over HTTPS with a self-signed
-  certificate, on the loopback interface. The sidebar entry does not need it.
+- **Port 5594.** The admin interface is also reachable over HTTPS at `https://<address of the machine>:5594`
+  with a self-signed certificate. The sidebar entry uses the same port through the Supervisor's network
+  and does not need it. *Network → Admin interface port* changes the port, *Admin interface on this machine
+  only* closes it to the LAN.
   OpenID Connect login and GoAccess need it.
 - **Access to other apps' configuration.** To import the Community App's data directly, this app has
   read-only access to the configuration folders of all apps. It reads them only while a migration

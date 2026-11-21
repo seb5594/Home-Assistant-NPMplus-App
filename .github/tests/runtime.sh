@@ -124,13 +124,14 @@ options_apply_the_defaults_of_the_app() {
   options::export_environment > /dev/null
   assert_equals 8080 "$HTTP_PORT" "HTTP stays off port 80 of the host"
   assert_equals 5594 "$NPM_PORT" "the admin interface sits on the ingress port"
-  assert_equals true "$NPM_LISTEN_LOCALHOST" "the admin interface stays on the loopback interface"
+  [[ -z ${NPM_LISTEN_LOCALHOST+x} ]] || fail "the admin interface is reachable from the LAN unless the user restricts it"
 
-  for name in HTTP_PORT NPM_PORT NPM_LISTEN_LOCALHOST; do unset "$name"; done
-  write_options '{"network": {"http_port": 80}, "advanced": {"extra_environment": ["NPM_LISTEN_LOCALHOST=false"]}}'
+  for name in HTTP_PORT NPM_PORT; do unset "$name"; done
+  write_options '{"network": {"http_port": 80, "admin_port": 81, "admin_localhost_only": true}, "advanced": {"extra_environment": ["NPM_PORT=82"]}}'
   options::export_environment > /dev/null
   assert_equals 80 "$HTTP_PORT" "an option beats the default"
-  assert_equals false "$NPM_LISTEN_LOCALHOST" "an additional variable beats the default"
+  assert_equals true "$NPM_LISTEN_LOCALHOST" "the admin interface can be restricted to this machine"
+  assert_equals 82 "$NPM_PORT" "an additional variable beats an option"
 }
 
 options_do_not_leak_into_the_log() {

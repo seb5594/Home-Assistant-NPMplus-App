@@ -1,5 +1,5 @@
 name: NPMplus
-version: "2026.11.21.6"
+version: "2026.11.21.7"
 slug: npmplus
 description: Nginx Proxy Manager fork with free TLS certificates, HTTP/3 and a modern admin UI. Reverse proxy for your smart home.
 url: https://github.com/seb5594/Home-Assistant-NPMplus-App
@@ -51,6 +51,8 @@ schema:
     renew_interval_hours: int(1,)?
     default_certificate_id: int(1,)?
   network:
+    admin_port: port?
+    admin_localhost_only: bool?
     http_port: port?
     https_port: port?
     disable_ipv6: bool?

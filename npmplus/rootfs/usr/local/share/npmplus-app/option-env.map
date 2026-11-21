@@ -20,6 +20,8 @@ certificates.renew_interval_hours=CERTBOT_RUN_INTERVAL
 certificates.default_certificate_id=DEFAULT_CERT_ID
 
 # --- Network -----------------------------------------------------------------
+network.admin_port=NPM_PORT
+network.admin_localhost_only=NPM_LISTEN_LOCALHOST
 network.http_port=HTTP_PORT
 network.https_port=HTTPS_PORT
 network.disable_ipv6=DISABLE_IPV6

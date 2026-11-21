@@ -12,6 +12,8 @@ source "${LIB_DIR}/log.sh"
 source "${LIB_DIR}/options.sh"
 # shellcheck source=storage.sh
 source "${LIB_DIR}/storage.sh"
+# shellcheck source=hosts.sh
+source "${LIB_DIR}/hosts.sh"
 # shellcheck source=migration.sh
 source "${LIB_DIR}/migration.sh"
 # shellcheck source=ingress.sh
@@ -20,6 +22,7 @@ source "${LIB_DIR}/ingress.sh"
 main() {
   options::export_environment
   storage::prepare
+  hosts::map_hostname_to_loopback
   migration::run
   ingress::install
 

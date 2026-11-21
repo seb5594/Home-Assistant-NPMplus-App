@@ -43,9 +43,10 @@ no port mapping.
 
 The HTTP and HTTPS ports can be changed under **Network** in the app configuration.
 
-Names of the Home Assistant network (`homeassistant`, the hostnames of other apps) are not resolved on
-the host. Proxy hosts target `127.0.0.1` for Home Assistant, and the address of the machine plus the
-port for other apps.
+The host name of the machine (the one under **Settings → System → Network**, for example `hassos`)
+and its `.local` variant resolve to `127.0.0.1` inside the app, so a proxy host may target
+`hassos:8123`. Other names of the Home Assistant network (`homeassistant`, the hostnames of other
+apps) are not resolved on the host: target the address of the machine plus the port for other apps.
 
 ## Configuration
 

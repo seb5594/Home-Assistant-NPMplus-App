@@ -67,9 +67,11 @@ NPMplus-Benutzer und lass die SSL-Prüfung aus, weil dieser Port ein selbstsigni
   HTTP/3 braucht keine Port-Zuordnung. Sie lauscht auf 8080 für HTTP (Port 80 des Hosts bleibt also
   frei; der Router leitet 80 darauf weiter) und auf 443 für HTTPS und HTTP/3. Beides lässt sich in der
   Konfiguration unter *Netzwerk* ändern. Proxy-Hosts zeigen deshalb für Home Assistant auf
-  `127.0.0.1:8123`, für andere Apps auf die Adresse des Rechners und deren Port. Namen des
-  Home-Assistant-Netzwerks wie `homeassistant` werden auf dem Host nicht aufgelöst; Hosts, die von einer
-  App in diesem Netzwerk übernommen werden, brauchen ein neues Ziel.
+  `127.0.0.1:8123`, für andere Apps auf die Adresse des Rechners und deren Port. Der Hostname des
+  Rechners (*Einstellungen → System → Netzwerk*) wird ebenfalls auf `127.0.0.1` aufgelöst, `hassos:8123`
+  funktioniert also auch. Andere Namen des Home-Assistant-Netzwerks wie `homeassistant` werden auf dem
+  Host nicht aufgelöst; Hosts, die von einer App in diesem Netzwerk übernommen werden, brauchen ein
+  neues Ziel.
 - **Port 5594.** Die Admin-Oberfläche ist auch per HTTPS erreichbar: `https://<Adresse des Rechners>:5594`
   mit selbstsigniertem Zertifikat. Der Seitenleisten-Eintrag nutzt denselben Port über das Netzwerk des
   Supervisors und braucht ihn nicht. *Netzwerk → Port der Admin-Oberfläche* ändert den Port, *Admin-Oberfläche

@@ -171,6 +171,26 @@ storage_links_user_folders() {
   assert_file "${CONFIG_DIR}/import" "the import folder is created for people to find"
 }
 
+# ---- hosts -------------------------------------------------------------------------------------
+
+hosts_resolve_the_machine_name_to_loopback() {
+  local name
+  name=$(hostname -s)
+  export HOSTS_FILE="${SANDBOX}/hosts"
+  # An address of the LAN, as a router or an mDNS responder would answer.
+  printf '127.0.0.1 localhost\n192.168.0.10 %s %s.local\n' "$name" "$name" > "$HOSTS_FILE"
+
+  hosts::map_hostname_to_loopback
+  hosts::map_hostname_to_loopback # a second start changes nothing
+  assert_equals 3 "$(wc -l < "$HOSTS_FILE" | tr -d ' ')" "the mapping is added once"
+  assert_equals "127.0.0.1 ${name} ${name}.local" "$(head -n 1 "$HOSTS_FILE")" \
+    "the host name and its mDNS name map to loopback, ahead of any other address"
+
+  printf '127.0.0.1 localhost %s\n' "$name" > "$HOSTS_FILE"
+  hosts::map_hostname_to_loopback
+  assert_equals "127.0.0.1 ${name}.local" "$(head -n 1 "$HOSTS_FILE")" "only the missing name is added"
+}
+
 # ---- migration ---------------------------------------------------------------------------------
 
 migration_is_off_by_default() {
@@ -485,6 +505,7 @@ scenario options_apply_the_defaults_of_the_app options_apply_the_defaults_of_the
 scenario options_do_not_leak_into_the_log options_do_not_leak_into_the_log
 scenario every_mapped_variable_exists_upstream every_mapped_variable_exists_upstream
 scenario storage_links_user_folders storage_links_user_folders
+scenario hosts_resolve_the_machine_name_to_loopback hosts_resolve_the_machine_name_to_loopback
 scenario migration_is_off_by_default migration_is_off_by_default
 scenario migration_imports_the_community_app migration_imports_the_community_app
 scenario migration_finds_the_legacy_mount_point migration_finds_the_legacy_mount_point

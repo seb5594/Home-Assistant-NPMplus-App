@@ -8,7 +8,8 @@ die direkt in der Home-Assistant-Seitenleiste öffnet.
 
 NPMplus ist ein Fork des Nginx Proxy Managers mit aktuellem nginx, HTTP/3, strengeren Voreinstellungen
 und vielen Erweiterungen (Anmeldung per OpenID Connect, vorgeschaltete Authentifizierung, ...). Dieses
-Repository verpackt es nur für Home Assistant; der Proxy selbst ist das unveränderte Upstream-Image.
+Repository verpackt es nur für Home Assistant; der Proxy selbst ist das unveränderte Upstream-Release auf
+dem gemeinsamen [Home-Assistant-Base-Image](https://github.com/seb5594/home-assistant-base-multi-arch).
 
 ## Das bekommst du
 
@@ -65,9 +66,11 @@ veröffentlicht sein.
   ihn nicht. OpenID-Connect-Anmeldung und GoAccess brauchen ihn.
 - **Zugriff auf die Konfiguration anderer Apps.** Um die Daten der Community-App direkt zu
   importieren, darf diese App die Konfigurationsordner aller Apps lesen (nur lesend). Sie tut das nur,
-  solange eine Migration eingestellt ist, und schreibt nie hinein. Die Zuordnung gehört fest zur App
-  und lässt sich nicht pro Installation abschalten; der Code, der sie nutzt, steht in
+  solange eine Migration eingestellt ist, und schreibt nie hinein. Die Zuordnung nutzt die alten `addon_config`-Typen, die jede
+  Supervisor-Version akzeptiert. Sie gehört fest zur App und lässt sich nicht pro Installation abschalten; der Code, der sie nutzt, steht in
   [`migration.sh`](npmplus/rootfs/usr/local/lib/npmplus-app/migration.sh).
+- **Architekturen.** amd64 und aarch64, die Plattformen, für die NPMplus selbst gebaut wird. armv7, armhf und
+  i386 (die Legacy-Plattformen des Base-Images) gibt es nicht: NPMplus liefert dafür keine Binärdateien.
 - **Zwei kleine Änderungen an der Admin-Oberfläche** passieren beim Bau des Images: Ihr Router lernt den
   Ingress-Pfad kennen, und sie startet im dunklen Modus statt dem Browser zu folgen. Der Bau schlägt
   fehl, wenn ein Upstream-Update den Code verschiebt, auf den sich die Änderungen stützen. Sie können
@@ -76,8 +79,9 @@ veröffentlicht sein.
 ## Updates und Entwicklung
 
 - Die NPMplus-Version ist das Build-Argument `NPMPLUS_VERSION` in
-  [`npmplus/Dockerfile`](npmplus/Dockerfile). Renovate schlägt neue Versionen vor; sonst ist nichts
-  festgelegt, weil die App keine eigenen Pakete installiert.
+  [`npmplus/Dockerfile`](npmplus/Dockerfile). Renovate schlägt neue Versionen vor, auch neue Tags des
+  Base-Images. Die Alpine-Pakete, die NPMplus braucht, sind bewusst nicht festgelegt; sie folgen der
+  Alpine-Version des Base-Images.
 - Optionen leben an drei Stellen, die [`options_consistency.py`](.github/checks/options_consistency.py)
   im Gleichschritt hält: das Schema in der `config.yaml`, die Übersetzungen und
   [`option-env.map`](npmplus/rootfs/usr/local/share/npmplus-app/option-env.map).

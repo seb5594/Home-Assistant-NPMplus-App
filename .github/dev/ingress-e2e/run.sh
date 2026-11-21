@@ -19,7 +19,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
-docker build --network host --tag "$IMAGE" "$APP_DIR"
+# A proxy, if the build host needs one, is handed through for `apk add`.
+docker build --network host --tag "$IMAGE" \
+  ${HTTPS_PROXY:+--build-arg "HTTPS_PROXY=${HTTPS_PROXY}" --build-arg "HTTP_PROXY=${HTTPS_PROXY}"} "$APP_DIR"
 docker run --rm --network host --cap-add NET_ADMIN --entrypoint ip "$IMAGE" \
   addr add 172.30.32.2/32 dev lo 2> /dev/null || true
 

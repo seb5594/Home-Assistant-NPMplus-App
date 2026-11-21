@@ -6,13 +6,13 @@
 </h1>
 
 <p align="center">
-  <a href="https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fseb5594%2FHome-Assistant-Apps"><img src="https://img.shields.io/static/v1?label=Home%20Assistant&amp;message=Add%20app%20repository&amp;color=18BCF2&amp;logo=homeassistant&amp;logoColor=white&amp;style=for-the-badge" alt="Home Assistant" height="28"></a>
-  <img src="https://img.shields.io/static/v1?label=home%20assistant&amp;message=%E2%89%A5%202026.7.0&amp;color=1877A5&amp;style=for-the-badge" alt="home assistant" height="28"><br>
+  <a href="https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fseb5594%2FHome-Assistant-Apps"><img src="https://img.shields.io/static/v1?label=Home%20Assistant&amp;message=Add%20app%20repository&amp;color=18BCF2&amp;logo=homeassistant&amp;logoColor=white&amp;style=for-the-badge" alt="Home Assistant" height="28"></a><br>
   <a href="https://github.com/seb5594/Home-Assistant-NPMplus-App/releases"><img src="https://img.shields.io/static/v1?label=app%20version&amp;message=2026.11.21&amp;color=1877A5&amp;style=for-the-badge" alt="app version" height="28"></a><br>
   <img src="https://img.shields.io/static/v1?label=stage&amp;message=stable&amp;color=2F855A&amp;style=flat" alt="stage" height="20">
   <img src="https://img.shields.io/static/v1?label=ingress&amp;message=enabled&amp;color=7C3AED&amp;style=flat" alt="ingress" height="20">
   <img src="https://img.shields.io/static/v1?label=arch&amp;message=amd64%20%C2%B7%20aarch64&amp;color=157F71&amp;style=flat" alt="arch" height="20">
-  <img src="https://img.shields.io/static/v1?label=mounts&amp;message=all_app_configs%20%C2%B7%20app_config%20%28rw%29&amp;color=B45309&amp;style=flat" alt="mounts" height="20"><br>
+  <a href="https://github.com/seb5594/home-assistant-base-multi-arch"><img src="https://img.shields.io/static/v1?label=base%20image&amp;message=3.24-2026.11.0&amp;color=1877A5&amp;style=flat" alt="base image" height="20"></a>
+  <img src="https://img.shields.io/static/v1?label=mounts&amp;message=addon_config%20%28rw%29%20%C2%B7%20app%20configs&amp;color=B45309&amp;style=flat" alt="mounts" height="20"><br>
   <a href="https://github.com/seb5594/Home-Assistant-NPMplus-App/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/seb5594/Home-Assistant-NPMplus-App/ci.yml?branch=dev&amp;label=checks&amp;style=flat" alt="checks" height="20"></a>
   <a href="https://github.com/seb5594/Home-Assistant-Apps/issues"><img src="https://img.shields.io/github/issues/seb5594/Home-Assistant-NPMplus-App?label=issues&amp;style=flat" alt="issues" height="20"></a><br>
   <a href="https://paypal.me/seb5594"><img src="https://img.shields.io/static/v1?label=Support&amp;message=PayPal&amp;color=0070BA&amp;logo=paypal&amp;logoColor=white&amp;style=for-the-badge" alt="PayPal" height="24"></a>
@@ -29,7 +29,8 @@ Home Assistant sidebar.
 
 NPMplus is a fork of Nginx Proxy Manager with a current nginx, HTTP/3, stricter defaults and plenty of
 additions (OpenID Connect login, forward authentication, ...). This repository only packages it for
-Home Assistant; the proxy itself is the unchanged upstream image.
+Home Assistant; the proxy itself is the unchanged upstream release, put on the shared
+[Home Assistant base image](https://github.com/seb5594/home-assistant-base-multi-arch).
 
 ## What you get
 
@@ -82,9 +83,11 @@ self-signed certificate. Port 81 does not need to be published for this.
   OpenID Connect login and GoAccess need it.
 - **Access to other apps' configuration.** To import the Community App's data directly, this app has
   read-only access to the configuration folders of all apps. It reads them only while a migration
-  is configured and never writes to them. The mapping is part of the app and cannot be switched off
-  per installation; the code that uses it is in
+  is configured and never writes to them. The mapping uses the legacy `addon_config` types, which every Supervisor
+  version accepts. It is part of the app and cannot be switched off per installation; the code that uses it is in
   [`migration.sh`](npmplus/rootfs/usr/local/lib/npmplus-app/migration.sh).
+- **Architectures.** amd64 and aarch64, the platforms NPMplus itself is built for. armv7, armhf and
+  i386 (the legacy platforms of the base image) are not offered: NPMplus ships no binaries for them.
 - **Two small changes to the admin interface** are made when the image is built: its router learns
   about the ingress path and it starts in dark mode instead of following the browser. The build
   fails if an upstream update moves the code these changes rely on, so they can never be skipped
@@ -93,8 +96,9 @@ self-signed certificate. Port 81 does not need to be published for this.
 ## Updates and development
 
 - The NPMplus version is the `NPMPLUS_VERSION` build argument in
-  [`npmplus/Dockerfile`](npmplus/Dockerfile). Renovate proposes new releases; nothing else is pinned
-  because the app adds no packages of its own.
+  [`npmplus/Dockerfile`](npmplus/Dockerfile). Renovate proposes new releases, and also new tags of the
+  base image. The Alpine packages NPMplus needs are deliberately not pinned; they follow the base
+  image's Alpine release.
 - Options live in three places that [`options_consistency.py`](.github/checks/options_consistency.py)
   keeps in step: the schema in `config.yaml`, the translations and
   [`option-env.map`](npmplus/rootfs/usr/local/share/npmplus-app/option-env.map).

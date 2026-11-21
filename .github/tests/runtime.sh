@@ -38,10 +38,10 @@ assert_no_file() { # path message
 scenario() {
   local name=$1 body=$2
   local sandbox="${WORKDIR}/${name}"
-  mkdir -p "${sandbox}"/{data,config,app_configs}
+  mkdir -p "${sandbox}"/{data,config,app_configs,addon_configs}
   (
     export OPTIONS_FILE="${sandbox}/options.json" DATA_DIR="${sandbox}/data" CONFIG_DIR="${sandbox}/config"
-    export APP_CONFIGS_DIR="${sandbox}/app_configs" NGINX_CONF_DIR="${sandbox}/nginx-conf.d"
+    export APP_CONFIGS_DIRS="${sandbox}/app_configs ${sandbox}/addon_configs" NGINX_CONF_DIR="${sandbox}/nginx-conf.d"
     export SANDBOX="$sandbox"
     echo '{}' > "$OPTIONS_FILE"
     # shellcheck source=run.sh
@@ -163,7 +163,7 @@ migration_is_off_by_default() {
 }
 
 migration_imports_the_community_app() {
-  local source="${APP_CONFIGS_DIR}/a0d7b954_nginxproxymanager" before
+  local source="${SANDBOX}/app_configs/a0d7b954_nginxproxymanager" before
   make_community_source "$source"
   before=$(checksum_tree "$source")
   write_options '{"migration": {"source": "community_app"}}'
@@ -191,8 +191,18 @@ migration_imports_the_community_app() {
   assert_equals "$before" "$(checksum_tree "$source")" "the source is never modified"
 }
 
+migration_finds_the_legacy_mount_point() {
+  # Older Supervisors, and the legacy map type, mount the configuration folders at /addon_configs.
+  make_community_source "${SANDBOX}/addon_configs/a0d7b954_nginxproxymanager"
+  write_options '{"migration": {"source": "community_app"}}'
+  storage::prepare
+  migration::run > /dev/null
+  assert_file "$NPMPLUS_DATABASE" "the database is found below the legacy mount point"
+  assert_file "${DATA_DIR}/access/1" "its files are imported as well"
+}
+
 migration_skips_existing_data() {
-  make_community_source "${APP_CONFIGS_DIR}/a0d7b954_nginxproxymanager"
+  make_community_source "${SANDBOX}/app_configs/a0d7b954_nginxproxymanager"
   mkdir -p "${DATA_DIR}/npmplus"
   echo 'existing' > "$NPMPLUS_DATABASE"
   write_options '{"migration": {"source": "community_app"}}'
@@ -205,7 +215,7 @@ migration_skips_existing_data() {
 }
 
 migration_refuses_databases_from_newer_releases() {
-  local source="${APP_CONFIGS_DIR}/a0d7b954_nginxproxymanager" output status=0
+  local source="${SANDBOX}/app_configs/a0d7b954_nginxproxymanager" output status=0
   make_community_source "$source"
   rm -f "${source}/database.sqlite"
   make_database "${source}/database.sqlite" "29990101000000_from_the_future.js"
@@ -240,7 +250,7 @@ migration_imports_a_manual_folder() {
 }
 
 migration_reads_a_database_in_use() {
-  local source="${APP_CONFIGS_DIR}/a0d7b954_nginxproxymanager"
+  local source="${SANDBOX}/app_configs/a0d7b954_nginxproxymanager"
   make_community_source "$source"
   # A writer that has not committed yet, like an old app that is still running.
   python3 - "${source}/database.sqlite" <<'PYTHON' &
@@ -313,6 +323,18 @@ ingress_shim_is_valid_javascript() {
   node --check /usr/local/share/npmplus-app/ingress/assets/shim.js
 }
 
+# The image is put together from an upstream release and the shared base image. These programs
+# fail first when the two drift apart, for example after a new Alpine release.
+upstream_programs_run_on_the_base_image() {
+  nginx -V 2>&1 | grep -q "http_v3_module" || fail "nginx does not start or lacks HTTP/3"
+  nginx -V 2>&1 | grep -q "lua-nginx-module" || fail "nginx lacks the Lua module"
+  certbot --version > /dev/null || fail "certbot does not run (is the Python of the venv still installed?)"
+  node --version > /dev/null || fail "node does not run"
+  (cd /app && node --input-type=module -e "await import('better-sqlite3')") || fail "the native sqlite module does not load"
+  goaccess --version > /dev/null || fail "goaccess does not run"
+  jq --version > /dev/null || fail "jq does not run"
+}
+
 # ---- run ---------------------------------------------------------------------------------------
 
 scenario options_are_exported options_are_exported
@@ -321,6 +343,7 @@ scenario every_mapped_variable_exists_upstream every_mapped_variable_exists_upst
 scenario storage_links_user_folders storage_links_user_folders
 scenario migration_is_off_by_default migration_is_off_by_default
 scenario migration_imports_the_community_app migration_imports_the_community_app
+scenario migration_finds_the_legacy_mount_point migration_finds_the_legacy_mount_point
 scenario migration_skips_existing_data migration_skips_existing_data
 scenario migration_refuses_databases_from_newer_releases migration_refuses_databases_from_newer_releases
 scenario migration_reports_a_missing_source migration_reports_a_missing_source
@@ -331,3 +354,4 @@ scenario ingress_footer_can_be_switched_off ingress_footer_can_be_switched_off
 scenario ingress_template_typos_fail_loudly ingress_template_typos_fail_loudly
 scenario frontend_is_patched frontend_is_patched
 scenario ingress_shim_is_valid_javascript ingress_shim_is_valid_javascript
+scenario upstream_programs_run_on_the_base_image upstream_programs_run_on_the_base_image
